@@ -1,0 +1,62 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔼 FORMULARIO PARA GUARDAR REQUISITO -->
+  <form (ngSubmit)="guardarRequisito()" #requisitoForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Requisito</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Descripción:</label>
+        <textarea [(ngModel)]="nuevoRequisito.Descripcion" name="descripcion" required class="w-full p-2 border rounded h-24"></textarea>
+      </div>
+      <div>
+        <label class="block font-semibold">Id del Estudiante:</label>
+        <input type="number" [(ngModel)]="nuevoRequisito.EstudianteId" name="estudianteId" class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Id del Estado:</label>
+        <input type="number" [(ngModel)]="nuevoRequisito.EstadoId" name="estadoId" class="w-full p-2 border rounded">
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="requisitoForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE REQUISITOS -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Requisitos</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">Descripción</th>
+          <th class="py-2 px-4 text-left">Id Estudiante</th>
+          <th class="py-2 px-4 text-left">Fecha Registro</th>
+          <th class="py-2 px-4 text-left">Fecha Modificación</th>
+          <th class="py-2 px-4 text-left">Id Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let requisito of requisitos" class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ requisito.Id }}</td>
+          <td class="py-2 px-4">{{ requisito.Descripcion }}</td>
+          <td class="py-2 px-4">{{ requisito.EstudianteId }}</td>
+          <td class="py-2 px-4">{{ requisito.FechaRegistro | date: 'medium' }}</td>
+          <td class="py-2 px-4">{{ requisito.FechaModificacion | date: 'medium' }}</td>
+          <td class="py-2 px-4">{{ requisito.EstadoId }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="requisitos.length === 0" class="text-gray-500 pt-4">No hay requisitos registrados.</p>
+  </div>
+</div>
+

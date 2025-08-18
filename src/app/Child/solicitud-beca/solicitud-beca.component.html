@@ -1,0 +1,77 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔼 FORMULARIO PARA GUARDAR SOLICITUD DE BECA -->
+  <form (ngSubmit)="guardarSolicitudBeca()" #solicitudForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Solicitud de Beca</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Id del Estudiante:</label>
+        <input type="number" [(ngModel)]="nuevaSolicitudBeca.EstudianteId" name="estudianteId" required class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Id del Tipo de Beca:</label>
+        <input type="number" [(ngModel)]="nuevaSolicitudBeca.TipoBecaId" name="tipoBecaId" required class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Id del Estado:</label>
+        <input type="number" [(ngModel)]="nuevaSolicitudBeca.EstadoId" name="estadoId" required class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Id del Periodo Académico:</label>
+        <input type="number" [(ngModel)]="nuevaSolicitudBeca.PeriodoAcademicoId" name="periodoAcademicold" required class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Fecha de Solicitud:</label>
+        <input type="datetime-local" [(ngModel)]="nuevaSolicitudBeca.FechaSolicitud" name="fechaSolicitud" required class="w-full p-2 border rounded">
+      </div>
+      <div class="col-span-1 md:col-span-2">
+        <label class="block font-semibold">Observaciones:</label>
+        <textarea [(ngModel)]="nuevaSolicitudBeca.Observaciones" name="observaciones" class="w-full p-2 border rounded h-24"></textarea>
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="solicitudForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE SOLICITUDES DE BECA -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Solicitudes de Beca</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">Id Estudiante</th>
+          <th class="py-2 px-4 text-left">Id Tipo Beca</th>
+          <th class="py-2 px-4 text-left">Id Estado</th>
+          <th class="py-2 px-4 text-left">Fecha Solicitud</th>
+          <th class="py-2 px-4 text-left">Id Periodo Académico</th>
+          <th class="py-2 px-4 text-left">Observaciones</th>
+          <th class="py-2 px-4 text-left">Fecha Resultado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let solicitud of solicitudesBeca" class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ solicitud.Id }}</td>
+          <td class="py-2 px-4">{{ solicitud.EstudianteId }}</td>
+          <td class="py-2 px-4">{{ solicitud.TipoBecaId }}</td>
+          <td class="py-2 px-4">{{ solicitud.EstadoId }}</td>
+          <td class="py-2 px-4">{{ solicitud.FechaSolicitud | date: 'medium' }}</td>
+          <td class="py-2 px-4">{{ solicitud.PeriodoAcademicoId }}</td>
+          <td class="py-2 px-4">{{ solicitud.Observaciones }}</td>
+          <td class="py-2 px-4">{{ solicitud.Fecha_resultado | date: 'medium' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="solicitudesBeca.length === 0" class="text-gray-500 pt-4">No hay solicitudes de beca registradas.</p>
+  </div>
+</div>

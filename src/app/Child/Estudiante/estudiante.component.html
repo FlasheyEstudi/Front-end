@@ -1,26 +1,80 @@
-<div class="p-6">
-  <h2 class="text-2xl font-bold text-blue-800 mb-4">Listado de Estudiantes</h2>
+<div class="p-6 space-y-6">
 
-  <div class="mb-4 flex gap-4">
-    <button (click)="recargarEstudiantes()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-      🔄 Recargar
-    </button>
-    <button (click)="limpiarEstudiantes()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-      🧹 Limpiar
-    </button>
+  <!-- 🔼 FORMULARIO PARA GUARDAR ESTUDIANTE -->
+  <form (ngSubmit)="guardarEstudiante()" #estudianteForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Estudiante</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Nombre:</label>
+        <input type="text" [(ngModel)]="nuevoEstudiante.Nombre" name="Nombre" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">Apellido:</label>
+        <input type="text" [(ngModel)]="nuevoEstudiante.Apellido" name="Apellido" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">Edad:</label>
+        <input type="number" [(ngModel)]="nuevoEstudiante.Edad" name="Edad" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">Correo:</label>
+        <input type="email" [(ngModel)]="nuevoEstudiante.Correo" name="Correo" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">EstadoId:</label>
+        <input type="number" [(ngModel)]="nuevoEstudiante.EstadoId" name="EstadoId" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">CarreraId:</label>
+        <input type="number" [(ngModel)]="nuevoEstudiante.CarreraId" name="CarreraId" required class="w-full p-2 border rounded">
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="estudianteForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE ESTUDIANTES -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Estudiantes</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">Nombre</th>
+          <th class="py-2 px-4 text-left">Apellido</th>
+          <th class="py-2 px-4 text-left">Edad</th>
+          <th class="py-2 px-4 text-left">Correo</th>
+          <th class="py-2 px-4 text-left">EstadoId</th>
+          <th class="py-2 px-4 text-left">CarreraId</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let est of estudiantes" class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ est.Id }}</td>
+          <td class="py-2 px-4">{{ est.Nombre }}</td>
+          <td class="py-2 px-4">{{ est.Apellido }}</td>
+          <td class="py-2 px-4">{{ est.Edad }}</td>
+          <td class="py-2 px-4">{{ est.Correo }}</td>
+          <td class="py-2 px-4">{{ est.EstadoId }}</td>
+          <td class="py-2 px-4">{{ est.CarreraId }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="estudiantes.length === 0" class="text-gray-500 pt-4">No hay estudiantes registrados.</p>
   </div>
-
-  <div *ngIf="errorMsg" class="text-red-600 font-semibold mb-2">
-    {{ errorMsg }}
-  </div>
-
-  <ul *ngIf="estudiantes.length > 0; else noEstudiantes">
-    <li *ngFor="let est of estudiantes" class="border-b py-2">
-      {{ est.Nombre }} {{ est.Apellido }} - {{ est.Correo }} - {{est.Edad}}
-    </li>
-  </ul>
-
-  <ng-template #noEstudiantes>
-    <p class="text-gray-600">No hay estudiantes cargados.</p>
-  </ng-template>
 </div>

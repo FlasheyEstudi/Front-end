@@ -1,0 +1,37 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔼 FORMULARIO PARA GUARDAR CARRERA -->
+  <form (ngSubmit)="guardarCarrera()" #carreraForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Carrera</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Nombre:</label>
+        <input type="text" [(ngModel)]="nuevaCarrera.Nombre" name="Nombre" required class="w-full p-2 border rounded">
+      </div>
+
+      <div>
+        <label class="block font-semibold">Área de Conocimiento ID:</label>
+        <input type="number" [(ngModel)]="nuevaCarrera.AreaConocimientoId" name="AreaConocimientoId" required class="w-full p-2 border rounded">
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="carreraForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE CARRERAS -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Carreras</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">

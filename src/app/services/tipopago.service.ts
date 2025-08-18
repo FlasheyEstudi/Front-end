@@ -6,16 +6,16 @@ import { ErrorService } from './error.service'; // Ajusta la ruta si cambia
 @Injectable({
   providedIn: 'root',
 })
-export class EstudianteService {
-  private apiUrl = 'http://localhost:3000/api-beca/estudiantes';
-  private apipostUrl = 'http://localhost:3000/api-beca/estudiantes/add';
+export class TipoPagoService {
+  private apiUrl = 'http://localhost:3000/api-beca/TipoPago';
+  private apipostUrl = 'http://localhost:3000/api-beca/TipoPago/add';
 
   constructor(
     private http: HttpClient,
     private error: ErrorService
   ) { }
 
-  createEstudiante(data: any): Promise<any> {
+  createTipoPago(data: any): Promise<any> {
     const urlp = `${this.apipostUrl}`;
     return lastValueFrom(
       this.http.post<any>(urlp, data).pipe(
@@ -25,7 +25,7 @@ export class EstudianteService {
   }
 
 
-  async getAllEstudiantes(): Promise<any[]> {
+  async getAllTipoPagos(): Promise<any[]> {
     return await lastValueFrom(
       this.http.get<any[]>(this.apiUrl).pipe(
         catchError(this.error.handleError)
@@ -33,18 +33,11 @@ export class EstudianteService {
     );
   }
 
-  async getEstudianteById(id: number): Promise<any> {
+  async getTipoPagoById(id: number): Promise<any> {
     return await lastValueFrom(
       this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
         catchError(this.error.handleError)
       )
     );
   }
-
-
-
-
-
-
-
 }

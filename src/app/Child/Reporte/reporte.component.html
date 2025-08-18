@@ -1,0 +1,48 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔹 Resumen Totales en tarjetas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="p-4 rounded-xl shadow-md bg-blue-100 text-blue-800">
+      <h3 class="text-lg font-semibold">Total Solicitudes</h3>
+      <p class="text-2xl font-bold">{{ totales?.TotalSolicitudes || 0 }}</p>
+    </div>
+
+    <div class="p-4 rounded-xl shadow-md bg-yellow-100 text-yellow-800">
+      <h3 class="text-lg font-semibold">Pendientes</h3>
+      <p class="text-2xl font-bold">{{ totales?.Pendientes || 0 }}</p>
+    </div>
+
+    <div class="p-4 rounded-xl shadow-md bg-green-100 text-green-800">
+      <h3 class="text-lg font-semibold">Aprobadas</h3>
+      <p class="text-2xl font-bold">{{ totales?.Aprobadas || 0 }}</p>
+    </div>
+
+    <div class="p-4 rounded-xl shadow-md bg-red-100 text-red-800">
+      <h3 class="text-lg font-semibold">Rechazadas</h3>
+      <p class="text-2xl font-bold">{{ totales?.Rechazadas || 0 }}</p>
+    </div>
+  </div>
+
+  <!-- 🔹 Solicitudes por Estado en tabla -->
+  <div class="mt-6">
+    <h2 class="text-xl font-bold mb-2">Solicitudes por Estado</h2>
+    <table class="w-full table-auto border border-gray-300 rounded-md">
+      <thead>
+        <tr class="bg-gray-200">
+          <th class="px-4 py-2 border">Estado</th>
+          <th class="px-4 py-2 border">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of solicitudesPorEstado" class="hover:bg-gray-100">
+          <td class="px-4 py-2 border">{{ item.Estado }}</td>
+          <td class="px-4 py-2 border">{{ item.Cantidad }}</td>
+        </tr>
+        <tr *ngIf="!solicitudesPorEstado?.length">
+          <td colspan="2" class="text-center py-4">No hay datos disponibles</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+</div>

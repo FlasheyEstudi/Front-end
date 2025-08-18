@@ -1,0 +1,45 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔼 FORMULARIO PARA GUARDAR ÁREA DE CONOCIMIENTO -->
+  <form (ngSubmit)="guardarAreaConocimiento()" #areaForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Área de Conocimiento</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Nombre:</label>
+        <input type="text" [(ngModel)]="nuevaAreaConocimiento.nombre" name="nombre" required class="w-full p-2 border rounded">
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="areaForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE ÁREAS DE CONOCIMIENTO -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Áreas de Conocimiento</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">Nombre</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let area of areasConocimiento" class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ area.Id }}</td>
+          <td class="py-2 px-4">{{ area.nombre }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="areasConocimiento.length === 0" class="text-gray-500 pt-4">No hay áreas registradas.</p>
+  </div>
+</div>

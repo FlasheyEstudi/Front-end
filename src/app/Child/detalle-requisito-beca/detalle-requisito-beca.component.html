@@ -1,0 +1,51 @@
+<div class="p-6 space-y-6">
+
+  <!-- 🔼 FORMULARIO PARA GUARDAR DETALLE DE REQUISITO -->
+  <form (ngSubmit)="guardarDetalleRequisitoBeca()" #detalleForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
+    <h2 class="text-xl font-bold text-blue-800">Agregar Detalle de Requisito</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-semibold">Tipo Beca ID:</label>
+        <input type="number" [(ngModel)]="nuevoDetalleRequisito.TipoBecaId" name="tipoBecaId" required class="w-full p-2 border rounded">
+      </div>
+      <div>
+        <label class="block font-semibold">Requisito ID:</label>
+        <input type="number" [(ngModel)]="nuevoDetalleRequisito.RequisitoId" name="requisitoId" required class="w-full p-2 border rounded">
+      </div>
+    </div>
+
+    <div class="pt-4">
+      <button type="submit" [disabled]="detalleForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+        💾 Guardar
+      </button>
+      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+        🧹 Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- 🔽 TABLA DE DETALLES DE REQUISITOS -->
+  <div class="pt-6">
+    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Detalles de Requisitos de Beca</h2>
+
+    <table class="min-w-full bg-white shadow-md rounded">
+      <thead class="bg-blue-600 text-white">
+        <tr>
+          <th class="py-2 px-4 text-left">Id</th>
+          <th class="py-2 px-4 text-left">Tipo Beca ID</th>
+          <th class="py-2 px-4 text-left">Requisito ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let detalle of detalleRequisitosBeca" class="border-b hover:bg-gray-100">
+          <td class="py-2 px-4">{{ detalle.Id_detalle }}</td>
+          <td class="py-2 px-4">{{ detalle.TipoBecaId }}</td>
+          <td class="py-2 px-4">{{ detalle.RequisitoId }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p *ngIf="detalleRequisitosBeca.length === 0" class="text-gray-500 pt-4">No hay detalles de requisitos registrados.</p>
+  </div>
+</div>

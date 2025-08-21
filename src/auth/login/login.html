@@ -1,24 +1,40 @@
 <div class="login-container">
   <div class="login-card">
-    <!-- Logo o ícono -->
-    <div class="logo-container">
-      <div class="logo"></div>
+    <!-- Encabezado -->
+    <div class="header">
+      <h1 class="title">Sistema de Becas</h1>
+      <p class="subtitle">Universidad Ricardo Morales Avilés</p>
+    </div>
+
+    <!-- Botones de selección de rol -->
+    <div class="role-tabs">
+      <button 
+        class="role-tab" 
+        [class.active]="selectedRole === 'estudiante'"
+        (click)="selectRole('estudiante')"
+      >
+        <i class="fas fa-user-graduate"></i> Estudiante
+      </button>
+      <button 
+        class="role-tab" 
+        [class.active]="selectedRole === 'admin'"
+        (click)="selectRole('admin')"
+      >
+        <i class="fas fa-user-shield"></i> Administrador
+      </button>
+    </div>
+
+    <!-- Icono central -->
+    <div class="icon-container">
+      <i class="fas fa-graduation-cap"></i>
     </div>
 
     <!-- Título principal -->
-    <h2 class="login-title">Sistema de Becas</h2>
-    <p class="subtitle">Universidad Ricardo Morales Avilés</p>
+    <h2 class="portal-title">Portal {{ selectedRole === 'estudiante' ? 'Estudiantil' : 'Administrativo' }}</h2>
+    <p class="portal-subtitle">Accede a tu cuenta de {{ selectedRole === 'estudiante' ? 'estudiante' : 'administrador' }}</p>
 
     <!-- Formulario -->
     <form (ngSubmit)="login(loginForm)" #loginForm="ngForm" class="login-form">
-      <!-- Mensajes de error o carga -->
-      <div *ngIf="error" class="alert-message error-message">
-        {{ error }}
-      </div>
-      <div *ngIf="loading" class="alert-message loading-message">
-        Cargando...
-      </div>
-
       <!-- Campo de correo -->
       <div class="form-group">
         <label for="correo">Usuario o Carnet:</label>

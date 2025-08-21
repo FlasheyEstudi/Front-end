@@ -14,8 +14,9 @@ import { CommonModule } from '@angular/common';
 export class RegisterComponent {
   Nombre = '';
   Apellidos = '';
-  Correo = ''; // Changed from Email to Correo
+  Correo = '';
   Contrasena = '';
+  ConfirmarContrasena = '';
   Role = 'estudiante';
   error = '';
   loading = false;
@@ -28,9 +29,14 @@ export class RegisterComponent {
   }
 
   onSubmit() {
-    // Validación básica
+    // Validaciones básicas
     if (!this.Nombre.trim()) {
       this.error = 'El nombre es requerido';
+      return;
+    }
+    
+    if (!this.Apellidos.trim()) {
+      this.error = 'Los apellidos son requeridos';
       return;
     }
     
@@ -43,6 +49,11 @@ export class RegisterComponent {
       this.error = 'La contraseña debe tener al menos 6 caracteres';
       return;
     }
+    
+    if (this.Contrasena !== this.ConfirmarContrasena) {
+      this.error = 'Las contraseñas no coinciden';
+      return;
+    }
 
     this.loading = true;
     this.error = '';
@@ -50,7 +61,7 @@ export class RegisterComponent {
     const user: RegisterData = {
       Nombre: this.Nombre,
       Apellidos: this.Apellidos,
-      Correo: this.Correo, // Changed from Email to Correo
+      Correo: this.Correo,
       Contrasena: this.Contrasena,
       Role: this.Role
     };
@@ -58,7 +69,7 @@ export class RegisterComponent {
     this.authService.register(user).subscribe({
       next: () => {
         this.loading = false;
-        alert('Registro exitoso. Por favor inicie sesión.');
+        alert('Registro exitoso. Por favor inicia sesión.');
         this.router.navigate(['/login']);
       },
       error: (err: any) => {

@@ -1,5 +1,5 @@
-/* Detalle de Pagos - Estilo exacto al ejemplo */
-.detalle-container {
+/* Categorías de Becas - Estilo exacto al ejemplo */
+.categorias-container {
   margin-left: 260px;
   padding: 2rem;
   min-height: 100vh;
@@ -15,7 +15,7 @@
 
 .page-header h1 {
   font-size: 1.8rem;
-  color: #4caf50;
+  color: #2196f3;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -25,35 +25,8 @@
   font-size: 0.95rem;
 }
 
-/* Botones principales */
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  justify-content: flex-end;
-}
-
-.btn-export {
-  background: white;
-  border: 1px solid #4caf50;
-  color: #4caf50;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.btn-export:hover {
-  background: #e8f5e8;
-  transform: translateY(-1px);
-}
-
-.btn-process {
+/* Botón Nuevo Tipo de Beca */
+.btn-nuevo {
   background: #4caf50;
   color: white;
   border: none;
@@ -66,9 +39,13 @@
   align-items: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
 }
 
-.btn-process:hover {
+.btn-nuevo:hover {
   background: #388e3c;
   transform: translateY(-1px);
 }
@@ -137,6 +114,12 @@
 }
 
 /* Colores exactos según imagen */
+.kpi-card.blue {
+  background: linear-gradient(145deg, #2196f3, #66b3ff);
+  border: 1px solid #3399cc;
+  color: white;
+}
+
 .kpi-card.green {
   background: linear-gradient(145deg, #81c784, #a5d6a7);
   border: 1px solid #66b366;
@@ -149,117 +132,13 @@
   color: white;
 }
 
-.kpi-card.blue {
-  background: linear-gradient(145deg, #2196f3, #66b3ff);
-  border: 1px solid #3399cc;
-  color: white;
-}
-
 .kpi-card.purple {
   background: linear-gradient(145deg, #9c27b0, #e078d8);
   border: 1px solid #8e24aa;
   color: white;
 }
 
-/* Tabs Navigation */
-.tabs-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border: 1px solid #ddd;
-  overflow: hidden;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 0.8rem 1rem;
-  background: #f8f9fa;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.tab-button.active {
-  background: white;
-  border-bottom: 2px solid #4caf50;
-  color: #4caf50;
-  font-weight: 600;
-}
-
-.tab-button:hover {
-  background: #f1f3f5;
-}
-
-/* Tab Content */
-.tab-content {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 1.2rem;
-  border: 1px solid #ddd;
-}
-
-/* Filtros */
-.filters-container {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  align-items: center;
-  background: white;
-  border-radius: 8px;
-  padding: 0.8rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border: 1px solid #ddd;
-}
-
-.search-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 0.6rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.select-filter {
-  padding: 0.6rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.filter-button {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.filter-button:hover {
-  background: #388e3c;
-  transform: translateY(-1px);
-}
-
-/* Tabla de pagos */
+/* Tabla de categorías */
 .table-container {
   background: white;
   border-radius: 8px;
@@ -320,13 +199,8 @@ tr:hover {
   color: white;
 }
 
-.status-badge.completed {
-  background: #2196f3;
-  color: white;
-}
-
-.status-badge.pending {
-  background: #f44336;
+.status-badge.inactive {
+  background: #666;
   color: white;
 }
 
@@ -454,6 +328,14 @@ tr:hover {
 }
 
 .form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.6rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
 .form-group select {
   padding: 0.6rem;
   border: 1px solid #ddd;
@@ -511,194 +393,25 @@ tr:hover {
   100% { transform: rotate(360deg); }
 }
 
-/* Calendario de Pagos */
-.calendar-item {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #ddd;
-  transition: all 0.3s ease;
-}
-
-.calendar-item:hover {
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-  transform: translateY(-2px);
-}
-
-.date {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.date-icon {
-  font-size: 1.8rem;
-}
-
-.date-text {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #333;
-}
-
-.payments-count {
-  font-size: 0.9rem;
-  color: #666;
-  margin-left: auto;
-}
-
-.payment-details {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.beneficiario {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #4caf50;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
-.name {
-  font-weight: 500;
-  color: #333;
-}
-
-.codigo {
-  font-size: 0.85rem;
-  color: #666;
-  background: #f0f0f0;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-}
-
-.monto {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #4caf50;
-}
-
-.actions {
-  display: flex;
-  gap: 0.8rem;
-  align-items: center;
-}
-
-.btn-view {
-  background: #2196f3;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.btn-view:hover {
-  background: #1976d2;
-  transform: translateY(-1px);
-}
-
-.btn-process-lote {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.btn-process-lote:hover {
-  background: #388e3c;
-  transform: translateY(-1px);
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .detalle-container {
+  .categorias-container {
     margin-left: 60px;
     padding: 1rem;
   }
 
-  .action-buttons {
-    flex-direction: column;
-  }
-
-  .btn-export, .btn-process {
+  .btn-nuevo {
+    position: static;
     width: 100%;
     justify-content: center;
+    margin-bottom: 1rem;
   }
 
   .kpi-grid {
     grid-template-columns: 1fr;
   }
 
-  .tabs-container {
-    flex-direction: column;
-  }
-
-  .tab-button {
-    border-bottom: none;
-    border-right: 1px solid #ddd;
-  }
-
-  .tab-button:last-child {
-    border-right: none;
-  }
-
   .modal {
     width: 90%;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .payment-details {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .date {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-
-  .payments-count {
-    margin-left: 0;
   }
 }

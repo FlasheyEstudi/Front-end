@@ -48,10 +48,14 @@
             id="apellidos"
             [(ngModel)]="Apellidos"
             name="Apellidos"
+            required
             type="text"
             placeholder="Ingresa tus apellidos"
             class="form-input"
           />
+        </div>
+        <div *ngIf="registerForm.controls['Apellidos']?.invalid && (registerForm.controls['Apellidos']?.dirty || registerForm.controls['Apellidos']?.touched)" class="validation-error">
+          <div *ngIf="registerForm.controls['Apellidos']?.errors?.['required']">Los apellidos son obligatorios.</div>
         </div>
       </div>
 
@@ -86,6 +90,7 @@
             [(ngModel)]="Contrasena"
             name="Contrasena"
             required
+            minlength="6"
             [type]="showPassword ? 'text' : 'password'"
             placeholder="Ingresa tu contraseña"
             class="form-input"
@@ -97,6 +102,29 @@
         <div *ngIf="registerForm.controls['Contrasena']?.invalid && (registerForm.controls['Contrasena']?.dirty || registerForm.controls['Contrasena']?.touched)" class="validation-error">
           <div *ngIf="registerForm.controls['Contrasena']?.errors?.['required']">La contraseña es obligatoria.</div>
           <div *ngIf="registerForm.controls['Contrasena']?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</div>
+        </div>
+      </div>
+
+      <!-- Campo de confirmar contraseña -->
+      <div class="form-group">
+        <label for="confirmarContrasena">Confirmar Contraseña:</label>
+        <div class="input-wrapper password-wrapper">
+          <i class="fas fa-lock"></i>
+          <input
+            id="confirmarContrasena"
+            [(ngModel)]="ConfirmarContrasena"
+            name="ConfirmarContrasena"
+            required
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Confirma tu contraseña"
+            class="form-input"
+          />
+          <span class="password-toggle" (click)="togglePasswordVisibility()">
+            <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </span>
+        </div>
+        <div *ngIf="registerForm.controls['ConfirmarContrasena']?.invalid && (registerForm.controls['ConfirmarContrasena']?.dirty || registerForm.controls['ConfirmarContrasena']?.touched)" class="validation-error">
+          <div *ngIf="registerForm.controls['ConfirmarContrasena']?.errors?.['required']">Por favor confirma tu contraseña.</div>
         </div>
       </div>
 

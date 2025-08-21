@@ -1,72 +1,194 @@
-<div class="main-container">
-  <!-- Formulario para agregar / editar tipo de beca -->
-  <form (ngSubmit)="guardarTipoBeca()" #tipoBecaForm="ngForm" class="tipo-beca-form">
-    <h2 class="form-title">Agregar Tipo de Beca</h2>
+<div class="tipo-beca-container">
 
-    <div class="form-fields-grid">
-      <div class="form-group">
-        <label class="form-label">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoTipoBeca.Nombre" name="nombre" required class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Descripción:</label>
-        <input type="text" [(ngModel)]="nuevoTipoBeca.Descripcion" name="descripcion" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Monto:</label>
-        <input type="number" [(ngModel)]="nuevoTipoBeca.Monto" name="monto" required class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Fecha de Registro:</label>
-        <input type="datetime-local" [(ngModel)]="nuevoTipoBeca.FechaRegistro" name="fechaRegistro" class="form-input">
-      </div>
-      <div class="form-group">
-        <label class="form-label">EstadoId:</label>
-        <input type="number" [(ngModel)]="nuevoTipoBeca.EstadoId" name="estadoId" required class="form-input">
-      </div>
-    </div>
+  <!-- Header principal -->
+  <div class="page-header">
+    <h1>Gestión de Tipos de Becas</h1>
+    <p>Administra los tipos de becas y sus requisitos por sistema académico</p>
+  </div>
 
-    <div class="form-actions">
-      <button type="submit" [disabled]="tipoBecaForm.invalid" class="btn-action">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="btn-secondary">
-        🧹 Limpiar
-      </button>
-    </div>
+  <!-- Botón Nuevo Tipo de Beca -->
+  <button class="btn-nuevo" (click)="abrirModalCrear()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Nuevo Tipo de Beca
+  </button>
 
-    <p *ngIf="errorMsg" class="error-alert">{{ errorMsg }}</p>
-  </form>
+  <!-- Filtros -->
+  <div class="filters-container">
+    <input type="text" class="search-input" placeholder="Buscar..." [(ngModel)]="searchTerm" (input)="filtrarTiposBeca()" />
+    <select class="select-filter" [(ngModel)]="filtroEstado" (change)="filtrarTiposBeca()">
+      <option value="">Todos los estados</option>
+      <option value="1">Activo</option>
+      <option value="2">Inactivo</option>
+    </select>
+    <button class="filter-button" (click)="filtrarTiposBeca()">Filtrar</button>
+  </div>
 
-  <!-- Listado de tipos de beca -->
-  <div class="tipo-beca-list">
-    <h2 class="table-title">Listado de Tipos de Beca</h2>
-
+  <!-- Tabla de tipos de beca -->
+  <div class="table-container">
     <div class="table-responsive">
-      <table class="data-table">
+      <table>
         <thead>
           <tr>
-            <th>ID</th>
-            <th>DESCRIPCIÓN</th>
-            <th>MONTO</th>
-            <th>FECHA REGISTRO</th>
-            <th>FECHA MODIFICACIÓN</th>
-            <th>ESTADOID</th>
+            <th>Beca</th>
+            <th>Descripción</th>
+            <th>Sistema Académico</th>
+            <th>Montos</th>
+            <th>Requisitos</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let tipoBeca of tiposBeca" class="data-table-row">
-            <td>{{ tipoBeca.Id }}</td>
-            <td>{{ tipoBeca.Nombre }}</td>
-            <td>{{ tipoBeca.Monto }}</td>
-            <td>{{ tipoBeca.FechaRegistro }}</td>
-            <td>{{ tipoBeca.FechaModificacion }}</td>
-            <td>{{ tipoBeca.EstadoId }}</td>
+          <tr *ngFor="let tipoBeca of filteredTiposBeca">
+            <td>
+              <strong>{{ tipoBeca.Nombre }}</strong><br />
+              <small>Monto anual: C${{ tipoBeca.Monto ?? 0 }}</small>
+            </td>
+            <td>{{ tipoBeca.Descripcion }}</td>
+            <td>{{ tipoBeca.SistemaAcademico }}</td>
+            <td>
+              <div>Semestre: C${{ tipoBeca.MontoSemestre ?? 0 }}</div>
+              <div>Cuatrimestre: C${{ tipoBeca.MontoCuatrimestre ?? 0 }}</div>
+            </td>
+            <td>{{ tipoBeca.Requisitos ?? 0 }} requisitos</td>
+            <td>
+              <span class="status-badge" 
+                    [class.active]="(tipoBeca.EstadoId ?? 0) === 1"
+                    [class.inactive]="(tipoBeca.EstadoId ?? 0) === 2">
+                {{ getEstadoNombre(tipoBeca.EstadoId) }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-action edit" (click)="editarTipoBeca(tipoBeca.Id ?? 0)">✏️</button>
+              <button class="btn-action delete" (click)="eliminarTipoBeca(tipoBeca.Id ?? 0)">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredTiposBeca.length === 0">
+            <td colspan="7" style="text-align:center; padding:1rem;">No se encontraron tipos de beca</td>
           </tr>
         </tbody>
       </table>
     </div>
-
-    <p *ngIf="tiposBeca.length === 0" class="no-data-message">No hay tipos de beca registrados.</p>
   </div>
+
+  <!-- Modal Crear Tipo de Beca -->
+  <div *ngIf="showCreateModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Nuevo Tipo de Beca</h3>
+        <button class="close-button" (click)="cerrarModalCrear()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="nuevoTipoBeca.Nombre" />
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="nuevoTipoBeca.EstadoId">
+              <option [value]="1">Activo</option>
+              <option [value]="2">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" [(ngModel)]="nuevoTipoBeca.Descripcion" />
+          </div>
+          <div class="form-group">
+            <label>Monto</label>
+            <input type="number" [(ngModel)]="nuevoTipoBeca.Monto" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Semestre</label>
+            <input type="number" [(ngModel)]="nuevoTipoBeca.MontoSemestre" />
+          </div>
+          <div class="form-group">
+            <label>Monto Cuatrimestre</label>
+            <input type="number" [(ngModel)]="nuevoTipoBeca.MontoCuatrimestre" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Requisitos</label>
+            <input type="number" [(ngModel)]="nuevoTipoBeca.Requisitos" />
+          </div>
+          <div class="form-group">
+            <label>Sistema Académico</label>
+            <input type="text" [(ngModel)]="nuevoTipoBeca.SistemaAcademico" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secundario" (click)="cerrarModalCrear()">Cancelar</button>
+          <button class="btn-primario" (click)="crearTipoBeca()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Editar Tipo de Beca -->
+  <div *ngIf="showEditModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Editar Tipo de Beca</h3>
+        <button class="close-button" (click)="cerrarModalEditar()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" [(ngModel)]="tipoBecaEdit.Nombre" />
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <select [(ngModel)]="tipoBecaEdit.EstadoId">
+              <option [value]="1">Activo</option>
+              <option [value]="2">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Descripción</label>
+            <input type="text" [(ngModel)]="tipoBecaEdit.Descripcion" />
+          </div>
+          <div class="form-group">
+            <label>Monto</label>
+            <input type="number" [(ngModel)]="tipoBecaEdit.Monto" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Semestre</label>
+            <input type="number" [(ngModel)]="tipoBecaEdit.MontoSemestre" />
+          </div>
+          <div class="form-group">
+            <label>Monto Cuatrimestre</label>
+            <input type="number" [(ngModel)]="tipoBecaEdit.MontoCuatrimestre" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Requisitos</label>
+            <input type="number" [(ngModel)]="tipoBecaEdit.Requisitos" />
+          </div>
+          <div class="form-group">
+            <label>Sistema Académico</label>
+            <input type="text" [(ngModel)]="tipoBecaEdit.SistemaAcademico" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-secundario" (click)="cerrarModalEditar()">Cancelar</button>
+          <button class="btn-primario" (click)="actualizarTipoBeca()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

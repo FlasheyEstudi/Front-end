@@ -1,11 +1,9 @@
 // src/app/services/detallepago.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
 // === INTERFACES === //
-
 export interface DetallePago {
   Id?: number;
   SolicitudBecaId: number;
@@ -34,48 +32,52 @@ export interface EstadoLookup {
   Nombre: string;
 }
 
-export interface AllDataResponse {
-  success: boolean;
-  timestamp: string;
-  data: {
-    detalles: DetallePago[];
-    solicitudes: SolicitudBecaLookup[];
-    tiposPago: TipoPagoLookup[];
-    estados: EstadoLookup[];
-  };
-  counts: {
-    detalles: number;
-    solicitudes: number;
-    tiposPago: number;
-    estados: number;
-  };
+export interface DashboardSummary {
+  totalPagado: number;
+  totalPendiente: number;
+  beneficiariosActivos: number;
+  presupuestoTotal: number;
+}
+
+export interface ControlPago {
+  Id: number;
+  Beneficiario: string;
+  Beca: string;
+  MontoTotal: number;
+  Pagado: number;
+  Restante: number;
+  ProximoPago: Date;
+  Estado: string;
+}
+
+export interface CalendarItem {
+  fecha: string;
+  pagos: {
+    id: number;
+    nombre: string;
+    monto: number;
+    estado: string;
+  }[];
+}
+
+export interface TransactionHistory {
+  id: number;
+  nombre: string;
+  fecha: Date;
+  monto: number;
+  metodo: string;
+  estado: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class DetallePagoService {
-  private baseUrl = 'http://localhost:3000/api-beca';
+  private baseUrl = 'http://localhost:3000/api-beca/detallepago';
 
   constructor(private http: HttpClient) {}
 
-  // === OBTENER TODOS LOS DATOS JUNTOS === //
-  getAllData(): Observable<AllDataResponse> {
-    const headers = this.getHeaders();
-    return this.http.get<AllDataResponse>(`${this.baseUrl}/detallepago/all-data`, { headers }).pipe(
-      catchError((error) => {
-        console.error('[DetallePagoService] Error en getAllData:', error);
-        return of({
-          success: false,
-          timestamp: new Date().toISOString(),
-          data: { detalles: [], solicitudes: [], tiposPago: [], estados: [] },
-          counts: { detalles: 0, solicitudes: 0, tiposPago: 0, estados: 0 }
-        });
-      })
-    );
-  }
-
-  // === MÉTODOS INDIVIDUALES === //
+  // === CRUD DETALLES DE PAGO === //
   getAllDetallePagos(): Observable<DetallePago[]> {
     return this.http.get<DetallePago[]>(`${this.baseUrl}/detallepago`, { headers: this.getHeaders() });
   }
@@ -92,6 +94,7 @@ export class DetallePagoService {
     return this.http.delete<{ mensaje: string }>(`${this.baseUrl}/detallepago/${id}`, { headers: this.getHeaders() });
   }
 
+  // === LOOKUPS === //
   getAllSolicitudBecasLookup(): Observable<SolicitudBecaLookup[]> {
     return this.http.get<SolicitudBecaLookup[]>(`${this.baseUrl}/solicitudbeca`, { headers: this.getHeaders() });
   }
@@ -104,7 +107,24 @@ export class DetallePagoService {
     return this.http.get<EstadoLookup[]>(`${this.baseUrl}/estado`, { headers: this.getHeaders() });
   }
 
-  // === HEADERS PRIVADOS === //
+  // === DASHBOARD === //
+  getDashboardSummary(): Observable<DashboardSummary> {
+    return this.http.get<DashboardSummary>(`${this.baseUrl}/detallepago/dashboard-summary`, { headers: this.getHeaders() });
+  }
+
+  getControlDePagos(): Observable<ControlPago[]> {
+    return this.http.get<ControlPago[]>(`${this.baseUrl}/detallepago/control-pagos`, { headers: this.getHeaders() });
+  }
+
+  getCalendarioDePagos(): Observable<CalendarItem[]> {
+    return this.http.get<CalendarItem[]>(`${this.baseUrl}/detallepago/calendario-pagos`, { headers: this.getHeaders() });
+  }
+
+  getHistorialTransacciones(): Observable<TransactionHistory[]> {
+    return this.http.get<TransactionHistory[]>(`${this.baseUrl}/detallepago/historial`, { headers: this.getHeaders() });
+  }
+
+  // === HEADERS === //
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
     return new HttpHeaders({

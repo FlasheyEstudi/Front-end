@@ -1,258 +1,173 @@
-<div class="report-container">
-  <!-- Encabezado -->
-  <header class="report-header">
-    <div class="logo-section">
-      <div class="logo-placeholder">
-        <i class="fas fa-graduation-cap"></i>
-      </div>
-      <div>
-        <h1>Centro de Reportes</h1>
-        <p>Análisis completo del programa de becas estudiantiles</p>
-      </div>
-    </div>
-    <div class="controls">
-      <select class="year-select" [(ngModel)]="selectedYear" (change)="onFilterChange()">
-        <option value="2025">2025</option>
-        <option value="2024">2024</option>
-        <option value="2023">2023</option>
+<div class="reporte-container">
+
+  <!-- === HEADER === -->
+  <div class="reporte-header">
+    <h1>Reporte de Becas</h1>
+    <p>Resumen y detalles de solicitudes, finanzas y estudiantes.</p>
+  </div>
+
+  <!-- === FILTROS === -->
+  <div class="reporte-filtros">
+    <label>Periodo Académico:
+      <select [(ngModel)]="periodoAcademicoId" (change)="onFilterChange()">
+        <option *ngFor="let p of periodosAcademicosLookup" [value]="p.Id">
+          {{ p.Nombre }} ({{ p.AnioAcademico }})
+        </option>
       </select>
-      <button class="export-btn" (click)="exportReport()" [disabled]="loading">
-        <i class="fas fa-download"></i> Exportar
-      </button>
-    </div>
-  </header>
+    </label>
 
-  <!-- Métricas principales -->
-  <div class="metrics-container">
-    <div class="metric-card green">
-      <div class="icon"><i class="fas fa-users"></i></div>
-      <div class="value">{{ totales?.TotalSolicitudes ?? 0 }}</div>
-      <div class="label">Total Beneficiarios</div>
-    </div>
-    <div class="metric-card blue">
-      <div class="icon"><i class="fas fa-dollar-sign"></i></div>
-      <div class="value">C$ {{ totales?.TotalSolicitudes ?? 0 }}</div>
-      <div class="label">Presupuesto Total</div>
-    </div>
-    <div class="metric-card red">
-      <div class="icon"><i class="fas fa-file-invoice"></i></div>
-      <div class="value">{{ totales?.TotalSolicitudes ?? 0 }}</div>
-      <div class="label">Solicitudes</div>
-    </div>
-    <div class="metric-card purple">
-      <div class="icon"><i class="fas fa-percent"></i></div>
-      <div class="value">{{ (totales?.Aprobadas ?? 0) && (totales?.TotalSolicitudes ?? 0) ? ((totales?.Aprobadas! / totales?.TotalSolicitudes!) * 100).toFixed(1) : 0 }}%</div>
-      <div class="label">Tasa de Aprobación</div>
-    </div>
+    <label>Estado:
+      <select [(ngModel)]="estadoId" (change)="onFilterChange()">
+        <option value="">Todos</option>
+        <option *ngFor="let e of estadosLookup" [value]="e.Id">
+          {{ e.Nombre }}
+        </option>
+      </select>
+    </label>
+
+    <button (click)="actualizarReportes()">Actualizar</button>
+    <button (click)="exportReport()">Exportar</button>
   </div>
 
-  <!-- Navegación entre pestañas -->
-  <div class="tabs-container">
-    <button 
-      class="tab-button" 
-      [class.active]="activeTab === 'resumen'"
-      (click)="changeTab('resumen')"
-    >
-      <i class="fas fa-chart-bar"></i> Resumen
-    </button>
-    <button 
-      class="tab-button" 
-      [class.active]="activeTab === 'financiero'"
-      (click)="changeTab('financiero')"
-    >
-      <i class="fas fa-coins"></i> Financiero
-    </button>
-    <button 
-      class="tab-button" 
-      [class.active]="activeTab === 'impacto'"
-      (click)="changeTab('impacto')"
-    >
-      <i class="fas fa-seedling"></i> Impacto
-    </button>
-    <button 
-      class="tab-button" 
-      [class.active]="activeTab === 'por-estudiante'"
-      (click)="changeTab('por-estudiante')"
-    >
-      <i class="fas fa-user-graduate"></i> Por Estudiante
-    </button>
-  </div>
+  <!-- === NAV TABS === -->
+  <ul class="reporte-tabs">
+    <li [class.active]="activeTab==='resumen'" (click)="changeTab('resumen')">Resumen</li>
+    <li [class.active]="activeTab==='totales'" (click)="changeTab('totales')">Totales</li>
+    <li [class.active]="activeTab==='solicitudes'" (click)="changeTab('solicitudes')">Solicitudes</li>
+    <li [class.active]="activeTab==='financiero'" (click)="changeTab('financiero')">Financiero</li>
+    <li [class.active]="activeTab==='estudiantes'" (click)="changeTab('estudiantes')">Estudiantes</li>
+    <li [class.active]="activeTab==='impacto'" (click)="changeTab('impacto')">Impacto</li>
+  </ul>
 
-  <!-- Contenido según pestaña activa -->
-  <div class="content-area">
-    <!-- === PESTAÑA: RESUMEN === -->
-    <div *ngIf="activeTab === 'resumen'" class="section">
-      <div class="cards-grid">
-        <div class="card card-total">
-          <div class="card-icon bg-primary"><i class="fas fa-file-invoice"></i></div>
-          <div class="card-body">
-            <h3 class="card-title">Total Beneficiarios</h3>
-            <p class="card-value">{{ totales?.TotalSolicitudes ?? 0 }}</p>
-          </div>
-        </div>
-        <div class="card card-pending">
-          <div class="card-icon bg-warning"><i class="fas fa-clock"></i></div>
-          <div class="card-body">
-            <h3 class="card-title">Pendientes</h3>
-            <p class="card-value">{{ totales?.Pendientes ?? 0 }}</p>
-          </div>
-        </div>
-        <div class="card card-approved">
-          <div class="card-icon bg-success"><i class="fas fa-check-circle"></i></div>
-          <div class="card-body">
-            <h3 class="card-title">Aprobadas</h3>
-            <p class="card-value">{{ totales?.Aprobadas ?? 0 }}</p>
-          </div>
-        </div>
-        <div class="card card-rejected">
-          <div class="card-icon bg-danger"><i class="fas fa-times-circle"></i></div>
-          <div class="card-body">
-            <h3 class="card-title">Rechazadas</h3>
-            <p class="card-value">{{ totales?.Rechazadas ?? 0 }}</p>
-          </div>
-        </div>
-      </div>
+  <!-- === CONTENIDO DE LAS TABS === -->
+  <div class="reporte-content">
+
+    <!-- Resumen -->
+    <div *ngIf="activeTab==='resumen'">
+      <h2>Resumen General</h2>
+      <p>Total Solicitudes: {{ totales.TotalSolicitudes }}</p>
+      <p>Pendientes: {{ totales.Pendientes }}</p>
+      <p>Aprobadas: {{ totales.Aprobadas }}</p>
+      <p>Rechazadas: {{ totales.Rechazadas }}</p>
     </div>
 
-    <!-- === PESTAÑA: FINANCIERO === -->
-    <div *ngIf="activeTab === 'financiero'" class="section">
-      <div class="chart-wrapper">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h2>Ejecución Presupuestaria</h2>
-            <p>Comparativa mensual de presupuesto vs ejecución</p>
-          </div>
-          <div class="chart-content">
-            <div class="chart">
-              <div class="bar-chart">
-                <div class="bar" *ngFor="let item of financialData" [style.height.%]="getBarHeight(item.Presupuesto, getMaxFinancialValue())">
-                  <div class="bar-label">{{ item.Mes }}</div>
-                  <div class="bar-value">${{ item.Presupuesto | number:'1.2-2' }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="chart-wrapper">
-        <div class="chart-container">
-          <div class="chart-header">
-            <h2>Tendencia de Gastos</h2>
-            <p>Evolución mensual del gasto ejecutado</p>
-          </div>
-          <div class="chart-content">
-            <div class="chart">
-              <div class="line-chart-container">
-                <svg class="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <polyline
-                    [attr.points]="lineChartPoints"
-                    fill="none"
-                    stroke="#28a745"
-                    stroke-width="2"
-                  />
-                  <circle
-                    *ngFor="let dataPoint of financialData; let i = index"
-                    [attr.cx]="getPointPosition(i)"
-                    [attr.cy]="100 - getPointBottomPosition(dataPoint.Ejecutado)"
-                    r="1.5"
-                    fill="#28a745"
-                  />
-                </svg>
-                <div class="chart-x-axis">
-                  <span *ngFor="let dataPoint of financialData; let i = index">{{ dataPoint.Mes }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <!-- Totales -->
+    <div *ngIf="activeTab==='totales'">
+      <h2>Totales</h2>
+      <table>
+        <tr>
+          <th>Total</th>
+          <th>Pendientes</th>
+          <th>Aprobadas</th>
+          <th>Rechazadas</th>
+        </tr>
+        <tr>
+          <td>{{ totales.TotalSolicitudes }}</td>
+          <td>{{ totales.Pendientes }}</td>
+          <td>{{ totales.Aprobadas }}</td>
+          <td>{{ totales.Rechazadas }}</td>
+        </tr>
+      </table>
     </div>
 
-    <!-- === PESTAÑA: IMPACTO === -->
-    <div *ngIf="activeTab === 'impacto'" class="section">
-      <div class="card impact-card">
-        <div class="card-header">
-          <h2>Impacto por Carrera</h2>
-          <p>Análisis del rendimiento académico por programa</p>
-        </div>
-        <div class="card-body">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Carrera</th>
-                <th>Beneficiarios</th>
-                <th>Promedio</th>
-                <th>Graduados</th>
-                <th>Tasa de Retención</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of impactData">
-                <td>{{ item.carrera }}</td>
-                <td>{{ item.beneficiarios }}</td>
-                <td>{{ item.promedio }}</td>
-                <td>{{ item.graduados }}</td>
-                <td>{{ item.tasaRetencion }}%</td>
-              </tr>
-              <tr *ngIf="impactData.length === 0">
-                <td colspan="5" class="no-data">No hay datos de impacto disponibles.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <!-- Solicitudes por Estado -->
+    <div *ngIf="activeTab==='solicitudes'">
+      <h2>Solicitudes por Estado</h2>
+      <table>
+        <tr>
+          <th>Estado</th>
+          <th>Cantidad</th>
+        </tr>
+        <tr *ngFor="let s of solicitudesPorEstado">
+          <td>{{ s.Estado }}</td>
+          <td>{{ s.Cantidad }}</td>
+        </tr>
+      </table>
     </div>
 
-    <!-- === PESTAÑA: POR ESTUDIANTE === -->
-    <div *ngIf="activeTab === 'por-estudiante'" class="section">
-      <div class="search-bar">
-        <input type="text" placeholder="Buscar estudiante..." [(ngModel)]="searchTerm" (input)="onSearch()" />
-        <button><i class="fas fa-search"></i></button>
-      </div>
-      
-      <div class="student-detail-card" *ngIf="selectedStudent">
-        <div class="student-header">
-          <div class="avatar">
-            {{ selectedStudent.nombre.charAt(0) + selectedStudent.apellidos.charAt(0) }}
-          </div>
-          <div class="student-info">
-            <h2>{{ selectedStudent.nombre }} {{ selectedStudent.apellidos }}</h2>
-            <p>{{ selectedStudent.edad }} años</p>
-            <p>{{ selectedStudent.carrera }}</p>
-            <p>{{ selectedStudent.facultad }}</p>
-          </div>
-        </div>
-        
-        <div class="student-stats">
-          <div class="stat-item">
-            <strong>Total Solicitud</strong>
-            <span>{{ selectedStudent.totalSolicitudes }}</span>
-          </div>
-          <div class="stat-item">
-            <strong>Becas Activas</strong>
-            <span>{{ selectedStudent.becasActivas }}</span>
-          </div>
-          <div class="stat-item">
-            <strong>Monto Total</strong>
-            <span>C$ {{ selectedStudent.montoTotal | number:'1.2-2' }}</span>
-          </div>
-          <div class="stat-item">
-            <strong>Promedio</strong>
-            <span>C$ {{ selectedStudent.promedio | number:'1.2-2' }}</span>
-          </div>
-        </div>
-      </div>
+    <!-- Financiero -->
+    <div *ngIf="activeTab==='financiero'">
+      <h2>Datos Financieros</h2>
+      <table>
+        <tr>
+          <th>Mes</th>
+          <th>Presupuesto</th>
+          <th>Ejecutado</th>
+          <th>Pendiente</th>
+        </tr>
+        <tr *ngFor="let f of financialData">
+          <td>{{ f.Mes }}</td>
+          <td>{{ f.Presupuesto }}</td>
+          <td>{{ f.Ejecutado }}</td>
+          <td>{{ f.Pendiente }}</td>
+        </tr>
+      </table>
+
+      <!-- Gráfico de línea simple -->
+      <svg width="100%" height="200">
+        <polyline
+          fill="none"
+          stroke="#007bff"
+          stroke-width="2"
+          [attr.points]="lineChartPoints">
+        </polyline>
+      </svg>
     </div>
+
+    <!-- Estudiantes -->
+    <div *ngIf="activeTab==='estudiantes'">
+      <h2>Estudiantes</h2>
+      <input type="text" placeholder="Buscar estudiante..." [(ngModel)]="searchTerm" (input)="onSearch()">
+      <table>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellidos</th>
+          <th>Carrera</th>
+          <th>Becas</th>
+          <th>Monto Total</th>
+        </tr>
+        <tr *ngFor="let s of studentsData">
+          <td>{{ s.Nombre }}</td>
+          <td>{{ s.Apellidos }}</td>
+          <td>{{ s.Carrera }}</td>
+          <td>{{ s.becas }}</td>
+          <td>{{ s.MontoTotal }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Impacto -->
+    <div *ngIf="activeTab==='impacto'">
+      <h2>Impacto de Becas</h2>
+      <table>
+        <tr>
+          <th>Carrera</th>
+          <th>Beneficiarios</th>
+          <th>Promedio</th>
+          <th>Graduados</th>
+          <th>Tasa Retención</th>
+        </tr>
+        <tr *ngFor="let i of impactData; let idx = index">
+          <td>{{ i.carrera }}</td>
+          <td>{{ i.beneficiarios }}</td>
+          <td>{{ i.promedio }}</td>
+          <td>{{ i.graduados }}</td>
+          <td>{{ i.tasaRetencion }}</td>
+        </tr>
+      </table>
+
+      <!-- Gráfico tipo pastel simple -->
+      <svg width="200" height="200">
+        <g *ngFor="let i of impactData; let idx = index" [attr.transform]="getPieSliceTransform(idx)">
+          <circle 
+            cx="100" cy="100" r="80" 
+            fill="transparent" stroke="#007bff" stroke-width="40"
+            [attr.stroke-dasharray]="getPieDashArray(i)">
+          </circle>
+        </g>
+      </svg>
+    </div>
+
   </div>
 
-  <!-- Mensaje de error -->
-  <div *ngIf="error" class="alert alert-error">
-    <i class="fas fa-exclamation-triangle"></i> {{ error }}
-  </div>
-
-  <!-- Loader -->
-  <div *ngIf="loading" class="loading-overlay">
-    <div class="spinner"></div>
-    <p>Cargando reportes, por favor espere...</p>
-  </div>
 </div>

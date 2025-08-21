@@ -1,188 +1,117 @@
 <!-- src/app/Child/solicitud-beca/solicitud-beca.component.html -->
-<div class="solicitud-container">
-  <div class="solicitud-card">
-    <div class="card-header">
-      <h1 class="card-title">Nueva Solicitud de Beca</h1>
-      <p class="card-subtitle">Complete todos los campos obligatorios para registrar una nueva solicitud</p>
-    </div>
+<div class="dashboard-container">
+  <!-- Header -->
+  <div class="header">
+    <h1 class="title">Gestión de Solicitud</h1>
+    <p class="subtitle">Revisa y procesa las solicitudes de becas</p>
+  </div>
 
-    <!-- Mensajes de estado -->
-    <div *ngIf="isSuccess" class="alert alert-success">
-      <i class="fas fa-check-circle"></i>
-      {{ message }}
-    </div>
-
-    <div *ngIf="isError" class="alert alert-error">
-      <i class="fas fa-exclamation-triangle"></i>
-      {{ message }}
-    </div>
-
-    <!-- Loading overlay -->
-    <div *ngIf="isLoading" class="loading-overlay">
-      <div class="spinner"></div>
-      <p>Cargando datos...</p>
-    </div>
-
-    <!-- Formulario -->
-    <form (ngSubmit)="onSubmit()" class="solicitud-form" [class.loading]="isLoading">
-      <div class="form-grid">
-        <!-- Estudiante -->
-        <div class="form-group">
-          <label for="estudiante" class="form-label">
-            <i class="fas fa-user-graduate"></i>
-            Estudiante *
-          </label>
-          <select 
-            id="estudiante" 
-            [(ngModel)]="solicitud.EstudianteId" 
-            name="estudiante"
-            class="form-select"
-            [disabled]="isLoading || estudiantes.length === 0">
-            <option value="" disabled selected>Seleccione un estudiante</option>
-            <option *ngFor="let est of estudiantes" [value]="est.Id">
-              {{ getNombreCompleto(est) }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Tipo de Beca -->
-        <div class="form-group">
-          <label for="tipoBeca" class="form-label">
-            <i class="fas fa-file-invoice-dollar"></i>
-            Tipo de Beca *
-          </label>
-          <select 
-            id="tipoBeca" 
-            [(ngModel)]="solicitud.TipoBecaId" 
-            name="tipoBeca"
-            class="form-select"
-            [disabled]="isLoading || tiposBeca.length === 0">
-            <option value="" disabled selected>Seleccione un tipo de beca</option>
-            <option *ngFor="let tipo of tiposBeca" [value]="tipo.Id">
-              {{ tipo.Nombre }} - ${{ tipo.Monto }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Periodo Académico -->
-        <div class="form-group">
-          <label for="periodo" class="form-label">
-            <i class="fas fa-calendar-alt"></i>
-            Periodo Académico *
-          </label>
-          <select 
-            id="periodo" 
-            [(ngModel)]="solicitud.PeriodoAcademicoId" 
-            name="periodo"
-            class="form-select"
-            [disabled]="isLoading || periodosAcademicos.length === 0">
-            <option value="" disabled selected>Seleccione un periodo</option>
-            <option *ngFor="let periodo of periodosAcademicos" [value]="periodo.Id">
-              {{ getPeriodoCompleto(periodo) }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Estado -->
-        <div class="form-group">
-          <label for="estado" class="form-label">
-            <i class="fas fa-info-circle"></i>
-            Estado
-          </label>
-          <select 
-            id="estado" 
-            [(ngModel)]="solicitud.EstadoId" 
-            name="estado"
-            class="form-select"
-            [disabled]="isLoading || estados.length === 0">
-            <option *ngFor="let estado of estados" [value]="estado.Id">
-              {{ estado.Nombre }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Fecha de Solicitud -->
-        <div class="form-group">
-          <label for="fechaSolicitud" class="form-label">
-            <i class="fas fa-calendar-day"></i>
-            Fecha de Solicitud *
-          </label>
-          <input 
-            type="date" 
-            id="fechaSolicitud" 
-            [(ngModel)]="solicitud.FechaSolicitud" 
-            name="fechaSolicitud"
-            class="form-input"
-            [disabled]="isLoading">
-        </div>
-
-        <!-- Fecha de Resultado -->
-        <div class="form-group">
-          <label for="fechaResultado" class="form-label">
-            <i class="fas fa-calendar-check"></i>
-            Fecha de Resultado
-          </label>
-          <input 
-            type="date" 
-            id="fechaResultado" 
-            [(ngModel)]="solicitud.Fecha_resultado" 
-            name="fechaResultado"
-            class="form-input"
-            [disabled]="isLoading">
-        </div>
-
-        <!-- Observaciones -->
-        <div class="form-group full-width">
-          <label for="observaciones" class="form-label">
-            <i class="fas fa-comment"></i>
-            Observaciones
-          </label>
-          <textarea 
-            id="observaciones" 
-            [(ngModel)]="solicitud.Observaciones" 
-            name="observaciones"
-            class="form-textarea"
-            rows="3"
-            placeholder="Ingrese cualquier observación adicional..."
-            [disabled]="isLoading">
-          </textarea>
-        </div>
-      </div>
-
-      <!-- Botones de acción -->
-      <div class="form-actions">
-        <button 
-          type="submit" 
-          class="btn btn-primary"
-          [disabled]="isLoading || !solicitud.EstudianteId || !solicitud.TipoBecaId || !solicitud.PeriodoAcademicoId">
-          <i class="fas fa-save"></i>
-          {{ isLoading ? 'Guardando...' : 'Registrar Solicitud' }}
-        </button>
-        
-        <button 
-          type="button" 
-          class="btn btn-secondary"
-          (click)="resetForm()"
-          [disabled]="isLoading">
-          <i class="fas fa-redo"></i>
-          Limpiar
-        </button>
-      </div>
-    </form>
-
-    <!-- Información adicional -->
-    <div class="info-section" *ngIf="tiposBeca.length > 0">
-      <h3 class="info-title">
-        <i class="fas fa-info-circle"></i>
-        Información de Tipos de Beca
-      </h3>
-      <div class="beca-types-grid">
-        <div *ngFor="let tipo of tiposBeca" class="beca-type-card">
-          <h4>{{ tipo.Nombre }}</h4>
-          <p>{{ tipo.Descripcion || 'Sin descripción' }}</p>
-          <span class="monto-badge">${{ tipo.Monto }}</span>
-        </div>
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-content">
+        <div class="kpi-number">{{ totalSolicitudes }}</div>
+        <div class="kpi-label">Total</div>
       </div>
     </div>
+    <div class="kpi-card green">
+      <div class="kpi-content">
+        <div class="kpi-number">{{ aprobadas }}</div>
+        <div class="kpi-label">Aprobadas</div>
+      </div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-content">
+        <div class="kpi-number">{{ enRevision }}</div>
+        <div class="kpi-label">En Revisión</div>
+      </div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-content">
+        <div class="kpi-number">{{ pendientes }}</div>
+        <div class="kpi-label">Pendientes</div>
+      </div>
+    </div>
+    <div class="kpi-card gray">
+      <div class="kpi-content">
+        <div class="kpi-number">{{ rechazadas }}</div>
+        <div class="kpi-label">Rechazadas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Buscar solicitudes..." [(ngModel)]="searchTerm" (input)="onSearch()">
+    </div>
+    <select [(ngModel)]="estadoFiltro" (change)="onFilterChange()">
+      <option value="">Todos los estados</option>
+      <option value="Aprobado">Aprobado</option>
+      <option value="En Proceso">En Proceso</option>
+      <option value="Pendiente">Pendiente</option>
+      <option value="Rechazado">Rechazado</option>
+    </select>
+    <select [(ngModel)]="becaFiltro" (change)="onFilterChange()">
+      <option value="">Todas las becas</option>
+      <option *ngFor="let tipo of tiposBeca" [value]="tipo.Nombre">{{ tipo.Nombre }}</option>
+    </select>
+    <select [(ngModel)]="periodoFiltro" (change)="onFilterChange()">
+      <option value="">Todos los periodos</option>
+      <option *ngFor="let periodo of periodosAcademicos" [value]="periodo.Nombre">{{ periodo.Nombre }}</option>
+    </select>
+    <div class="total-count">
+      {{ filteredSolicitudes.length }} solicitudes
+    </div>
+  </div>
+
+  <!-- Tabla de solicitudes -->
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Estudiante</th>
+          <th>Tipo de Beca</th>
+          <th>Periodo</th>
+          <th>Sistema académico</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let solicitud of filteredSolicitudes">
+          <td>
+            <div class="student-info">
+              <div class="avatar">{{ getInitials(solicitud.EstudianteNombre) }}</div>
+              <div class="student-name">{{ solicitud.EstudianteNombre }} {{ solicitud.EstudianteApellido }}</div>
+              <div class="student-id">{{ solicitud.EstudianteId }}</div> <!-- Reemplazo de Codigo -->
+              <div class="student-program">{{ solicitud.PeriodoAnioAcademico || 'N/A' }}</div> <!-- Reemplazo de Programa -->
+            </div>
+          </td>
+          <td>{{ solicitud.TipoBecaNombre }}</td>
+          <td>{{ solicitud.PeriodoAcademicoNombre }}</td>
+          <td>
+            <span class="system-badge">{{ 'N/A' }}</span> <!-- Reemplazo de SistemaAcademico -->
+          </td>
+          <td>{{ solicitud.FechaSolicitud | date:'yyyy-MM-dd' }}</td>
+          <td>
+            <div class="status-badge" [class]="getStatusClass(solicitud.Estadonombre)">
+              <i *ngIf="solicitud.Estadonombre === 'Aprobado'" class="fas fa-check-circle"></i>
+              <i *ngIf="solicitud.Estadonombre === 'En Proceso'" class="fas fa-clock"></i>
+              <i *ngIf="solicitud.Estadonombre === 'Pendiente'" class="fas fa-exclamation-triangle"></i>
+              <i *ngIf="solicitud.Estadonombre === 'Rechazado'" class="fas fa-times-circle"></i>
+              {{ solicitud.Estadonombre }}
+            </div>
+          </td>
+          <td>
+            <button class="btn-revisar" (click)="verSolicitud(solicitud.Id)">
+              <i class="fas fa-eye"></i> Revisar
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

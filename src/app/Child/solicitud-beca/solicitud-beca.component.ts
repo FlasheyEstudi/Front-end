@@ -2,214 +2,102 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
 import { SolicitudBecaService } from '../../services/solicitudbeca.service';
+
+interface Solicitud {
+  Id: number;
+  EstudianteId: number;
+  TipoBecaId: number;
+  EstadoId: number;
+  FechaSolicitud: string;
+  PeriodoAcademicoId: number;
+  Observaciones: string | null;
+  Fecha_resultado: string | null;
+  EstudianteNombre: string;
+  EstudianteApellido: string;
+  TipoBecaNombre: string;
+  Estadonombre: string;
+  PeriodoAcademicoNombre: string;
+  PeriodoAnioAcademico: string;
+}
 
 @Component({
   selector: 'app-solicitud-beca',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, HttpClientModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './solicitud-beca.component.html',
   styleUrls: ['./solicitud-beca.component.css']
 })
 export class SolicitudBecaComponent implements OnInit {
-  // Datos para selects
-  estudiantes: any[] = [];
+  solicitudes: Solicitud[] = [];
   tiposBeca: any[] = [];
-  estados: any[] = [];
   periodosAcademicos: any[] = [];
 
-  // Modelo del formulario
-  solicitud = {
-    EstudianteId: null,
-    TipoBecaId: null,
-    EstadoId: 1,
-    FechaSolicitud: new Date().toISOString().split('T')[0],
-    PeriodoAcademicoId: null,
-    Observaciones: '',
-    Fecha_resultado: null
-  };
+  searchTerm = '';
+  estadoFiltro = '';
+  becaFiltro = '';
+  periodoFiltro = '';
 
-  // Estados del componente
-  isLoading = false;
-  isSuccess = false;
-  isError = false;
-  message = '';
+  // Contadores para KPIs
+  totalSolicitudes = 0;
+  aprobadas = 0;
+  enRevision = 0;
+  pendientes = 0;
+  rechazadas = 0;
 
-  constructor(private solicitudService: SolicitudBecaService) {}
+  private apiUrl = 'http://localhost:3000/api-beca/solicitudbeca';
+
+  constructor(private solicitudBecaService: SolicitudBecaService) {}
 
   ngOnInit(): void {
-    this.cargarDatosIniciales();
+    this.cargarDatos();
   }
 
-  async cargarDatosIniciales() {
-    this.isLoading = true;
-    this.limpiarMensajes();
-    
-    console.log('=== INICIANDO CARGA DE DATOS ===');
-    
+  async cargarDatos() {
     try {
-      // Usar el nuevo endpoint que trae todos los datos juntos
-      const response = await this.solicitudService.getAllData().toPromise();
-      
-      console.log('Respuesta del backend:', response);
-      
-      if (response && response.success) {
-        // Extraer datos de la respuesta
+      const response = await this.solicitudBecaService.getAllData().toPromise();
+      if (response && response.success && response.data) {
         const data = response.data;
-        
-        this.estudiantes = data.estudiantes || [];
+        this.solicitudes = data.solicitudes || [];
         this.tiposBeca = data.tiposBeca || [];
-        this.estados = data.estados || [];
         this.periodosAcademicos = data.periodosAcademicos || [];
-        
-        console.log('Datos cargados:', {
-          estudiantes: this.estudiantes.length,
-          tiposBeca: this.tiposBeca.length,
-          estados: this.estados.length,
-          periodosAcademicos: this.periodosAcademicos.length
-        });
-        
-        // Establecer periodo académico por defecto
-        if (this.periodosAcademicos.length > 0 && !this.solicitud.PeriodoAcademicoId) {
-          this.solicitud.PeriodoAcademicoId = this.periodosAcademicos[0].Id;
-          console.log('Periodo por defecto establecido:', this.solicitud.PeriodoAcademicoId);
-        }
-        
-        this.mostrarExito('Datos cargados exitosamente');
-      } else {
-        throw new Error(response?.error || 'Respuesta inválida del servidor');
+        this.totalSolicitudes = this.solicitudes.length;
+        this.aprobadas = this.solicitudes.filter(s => s.Estadonombre === 'Aprobado').length;
+        this.enRevision = this.solicitudes.filter(s => s.Estadonombre === 'En Proceso').length;
+        this.pendientes = this.solicitudes.filter(s => s.Estadonombre === 'Pendiente').length;
+        this.rechazadas = this.solicitudes.filter(s => s.Estadonombre === 'Rechazado').length;
       }
-
-    } catch (error: any) {
-      console.error('=== ERROR DETALLADO ===');
-      console.error('Error completo:', error);
-      
-      const errorMessage = error.error?.message || 
-                           error.message || 
-                           error.statusText || 
-                           'Error desconocido al cargar datos';
-      
-      this.mostrarError(`Error cargando datos iniciales: ${errorMessage}`);
-      
-      // Logging adicional para debugging
-      if (error.status) {
-        console.error('Status HTTP:', error.status);
-      }
-      if (error.headers) {
-        console.error('Headers:', error.headers.keys());
-      }
-      
-    } finally {
-      this.isLoading = false;
+    } catch (error) {
+      console.error('Error cargando datos:', error);
     }
   }
 
-  async onSubmit() {
-    if (!this.validarFormulario()) {
-      return;
-    }
-
-    this.isLoading = true;
-    this.limpiarMensajes();
-
-    try {
-      const datosEnviar = {
-        EstudianteId: this.solicitud.EstudianteId,
-        TipoBecaId: this.solicitud.TipoBecaId,
-        EstadoId: this.solicitud.EstadoId,
-        FechaSolicitud: this.solicitud.FechaSolicitud,
-        PeriodoAcademicoId: this.solicitud.PeriodoAcademicoId,
-        Observaciones: this.solicitud.Observaciones || '',
-        Fecha_resultado: this.solicitud.Fecha_resultado || null
-      };
-
-      await this.solicitudService.createSolicitudBeca(datosEnviar).toPromise();
-      
-      this.mostrarExito('Solicitud de beca creada exitosamente');
-      this.resetForm();
-      
-      // Recargar datos para actualizar listas
-      setTimeout(() => this.cargarDatosIniciales(), 1500);
-
-    } catch (error: any) {
-      const errorMessage = error.error?.message || 
-                          error.message || 
-                          'Error al crear solicitud de beca';
-      this.mostrarError(`Error: ${errorMessage}`);
-      console.error('Error al crear solicitud:', error);
-    } finally {
-      this.isLoading = false;
-    }
+  get filteredSolicitudes() {
+    return this.solicitudes.filter(solicitud => {
+      const matchesSearch = solicitud.EstudianteNombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                            solicitud.EstudianteApellido.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesEstado = !this.estadoFiltro || solicitud.Estadonombre === this.estadoFiltro;
+      const matchesBeca = !this.becaFiltro || solicitud.TipoBecaNombre === this.becaFiltro;
+      const matchesPeriodo = !this.periodoFiltro || solicitud.PeriodoAcademicoNombre === this.periodoFiltro;
+      return matchesSearch && matchesEstado && matchesBeca && matchesPeriodo;
+    });
   }
 
-  validarFormulario(): boolean {
-    const errores: string[] = [];
-    
-    if (!this.solicitud.EstudianteId) {
-      errores.push('debe seleccionar un estudiante');
+  onSearch() {}
+  onFilterChange() {}
+  getStatusClass(estado: string): string {
+    switch (estado) {
+      case 'Aprobado': return 'approved';
+      case 'En Proceso': return 'pending-review';
+      case 'Pendiente': return 'pending';
+      case 'Rechazado': return 'rejected';
+      default: return 'default';
     }
-
-    if (!this.solicitud.TipoBecaId) {
-      errores.push('debe seleccionar un tipo de beca');
-    }
-
-    if (!this.solicitud.PeriodoAcademicoId) {
-      errores.push('debe seleccionar un periodo académico');
-    }
-
-    if (!this.solicitud.FechaSolicitud) {
-      errores.push('debe ingresar la fecha de solicitud');
-    }
-
-    if (errores.length > 0) {
-      this.mostrarError(`Campos requeridos: ${errores.join(', ')}`);
-      return false;
-    }
-
-    return true;
   }
-
-  resetForm() {
-    this.solicitud = {
-      EstudianteId: null,
-      TipoBecaId: null,
-      EstadoId: 1,
-      FechaSolicitud: new Date().toISOString().split('T')[0],
-      PeriodoAcademicoId: this.solicitud.PeriodoAcademicoId,
-      Observaciones: '',
-      Fecha_resultado: null
-    };
+  getInitials(nombre: string): string {
+    return nombre.charAt(0).toUpperCase();
   }
-
-  limpiarMensajes() {
-    this.isSuccess = false;
-    this.isError = false;
-    this.message = '';
-  }
-
-  mostrarExito(mensaje: string) {
-    this.isSuccess = true;
-    this.isError = false;
-    this.message = mensaje;
-    setTimeout(() => this.limpiarMensajes(), 5000);
-  }
-
-  mostrarError(mensaje: string) {
-    this.isSuccess = false;
-    this.isError = true;
-    this.message = mensaje;
-    setTimeout(() => this.limpiarMensajes(), 5000);
-  }
-
-  getNombreCompleto(estudiante: any): string {
-    if (!estudiante) return 'Desconocido';
-    return `${estudiante.Nombre || ''} ${estudiante.Apellido || ''}`.trim() || 'Sin nombre';
-  }
-
-  getPeriodoCompleto(periodo: any): string {
-    if (!periodo) return 'Desconocido';
-    return `${periodo.Nombre || ''} (${periodo.AnioAcademico || ''})`.trim() || 'Sin información';
+  verSolicitud(id: number) {
+    console.log('Ver solicitud:', id);
   }
 }

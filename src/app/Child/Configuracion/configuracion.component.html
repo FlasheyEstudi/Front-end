@@ -3,7 +3,7 @@
   <header class="config-header">
     <div class="header-content">
       <h1>Configuración del Sistema</h1>
-      <p>Administra los componentes principales del sistema</p>
+      <p>Gestiona los catálogos y configuraciones básicas del sistema</p>
     </div>
   </header>
 
@@ -14,6 +14,9 @@
       [class.active]="activeSection === 'areas'"
       (click)="setActiveSection('areas')"
     >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       Áreas de Conocimiento
     </button>
     <button
@@ -21,6 +24,9 @@
       [class.active]="activeSection === 'carreras'"
       (click)="setActiveSection('carreras')"
     >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       Carreras
     </button>
     <button
@@ -28,6 +34,9 @@
       [class.active]="activeSection === 'requisitos'"
       (click)="setActiveSection('requisitos')"
     >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       Requisitos
     </button>
     <button
@@ -35,6 +44,9 @@
       [class.active]="activeSection === 'periodos'"
       (click)="setActiveSection('periodos')"
     >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7.414a2 2 0 00-.586-1.414l-5.414-5.414A2 2 0 0012.586 1H8a2 2 0 00-2 2v14a2 2 0 002 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       Períodos Académicos
     </button>
     <button
@@ -42,6 +54,9 @@
       [class.active]="activeSection === 'estados'"
       (click)="setActiveSection('estados')"
     >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
       Estados
     </button>
   </div>

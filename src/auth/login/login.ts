@@ -1,4 +1,3 @@
-// src/app/auth/login/login.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth';
@@ -18,6 +17,7 @@ export class LoginComponent {
   error = '';
   loading = false;
   showPassword = false;
+  selectedRole = 'estudiante'; // Por defecto: estudiante
 
   constructor(
     private authService: AuthService,
@@ -26,6 +26,10 @@ export class LoginComponent {
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
+  }
+
+  selectRole(role: string) {
+    this.selectedRole = role;
   }
 
   login(loginForm: any) {
@@ -42,7 +46,8 @@ export class LoginComponent {
     this.authService.login(identifier, this.password).subscribe({
       next: (response) => {
         this.loading = false;
-        // redirección asegurada después del login
+        // Guardar rol en localStorage
+        localStorage.setItem('role', this.selectedRole);
         this.router.navigate(['/dashboard']);
       },
       error: (error: any) => {

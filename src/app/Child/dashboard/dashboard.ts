@@ -13,34 +13,12 @@ interface KpiCard {
   icon: string;
 }
 
-interface SolicitudBeca {
-  id: number;
-  estudianteId: number;
-  estudiante?: { nombre: string; apellido: string };
-  tipoBecaId: number;
-  tipoBeca?: { nombre: string };
-  estadoId: number;
-  estado?: { nombre: string };
-  fechaSolicitud: string;
-  periodoAcademicoId: number;
-  periodoAcademico?: { nombre: string };
-  observaciones: string | null;
-  fechaResultado: string | null;
-}
-
-interface Estudiante {
-  id: number;
-  nombre: string;
-  apellidos: string;
-  correo: string;
-  estadoId?: number;
-  carreraId?: number;
-  user?: { username: string; role: string };
-}
-
-interface TipoBeca {
-  id: number;
-  nombre: string;
+interface ActivityItem {
+  title: string;
+  description: string;
+  time: string;
+  icon: string;
+  color: string;
 }
 
 @Component({
@@ -53,14 +31,14 @@ interface TipoBeca {
 export class DashboardComponent implements OnInit, AfterViewInit {
   kpis: KpiCard[] = [
     { label: 'Estudiantes Registrados', value: 0, delta: 0, deltaType: 'up', icon: '👥' },
-    { label: 'Becas Disponibles', value: 0, delta: 0, deltaType: 'up', icon: '📚' },
+    { label: 'Becas Disponibles', value: 0, delta: 0, deltaType: 'up', icon: '🎓' },
     { label: 'Solicitudes Pendientes', value: 0, delta: 0, deltaType: 'down', icon: '⏳' },
     { label: 'Solicitudes Aprobadas', value: 0, delta: 0, deltaType: 'up', icon: '✅' }
   ];
 
+  recentActivities: ActivityItem[] = [];
   monthlyTrend: number[] = [];
   statusDistribution: number[] = [];
-  pendingRequests: any[] = [];
   tipoBecaData: any[] = [];
   loading: boolean = false;
   error: string = '';
@@ -74,7 +52,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.cargarDatosDashboard();
   }
 
-  ngAfterViewInit(): void { }
+  ngAfterViewInit(): void {
+    this.renderizarGraficos();
+  }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
@@ -92,10 +72,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       await Promise.all([
         this.cargarDatosKPIs(),
         this.cargarDatosGraficos(),
-        this.cargarSolicitudesRecientes(),
+        this.cargarActividadReciente(),
         this.cargarDatosTipoBeca()
       ]);
-      this.renderizarGraficos();
     } catch (error) {
       this.handleError('Error al cargar datos del dashboard', error);
     } finally {
@@ -110,7 +89,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       // Estudiantes
       const estudiantesResponse = await this.http
-        .get<Estudiante[]>(`${this.kpiBaseUrl}/estudiante`, { headers })
+        .get<any[]>(`${this.kpiBaseUrl}/estudiante`, { headers })
         .toPromise()
         .catch(() => []);
 
@@ -118,7 +97,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
       // Becas disponibles (tipos de beca)
       const tiposResponse = await this.http
-        .get<TipoBeca[]>(`${this.kpiBaseUrl}/tipobeca`, { headers })
+        .get<any[]>(`${this.kpiBaseUrl}/tipobeca`, { headers })
         .toPromise()
         .catch(() => []);
 
@@ -182,13 +161,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const headers = this.getHeaders();
 
       const tiposResponse = await this.http
-        .get<TipoBeca[]>(`${this.kpiBaseUrl}/tipobeca`, { headers })
+        .get<any[]>(`${this.kpiBaseUrl}/tipobeca`, { headers })
         .toPromise()
         .catch(() => []);
 
       const tiposBeca = tiposResponse ?? [];
 
-      const estadisticasPromises = tiposBeca.map(async (tipo) => {
+      const estadisticasPromises = tiposBeca.map(async (tipo: any) => {
         const totalPromise = this.http
           .get<{ count: number }>(`${this.baseUrl}/count?tipoBecaId=${tipo.id}`, { headers })
           .toPromise()
@@ -214,124 +193,107 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
-  async cargarSolicitudesRecientes(): Promise<void> {
+  async cargarActividadReciente(): Promise<void> {
     try {
       const headers = this.getHeaders();
 
       const response = await this.http
-        .get<SolicitudBeca[]>(`${this.baseUrl}/pendientes`, { headers })
+        .get<any[]>(`${this.baseUrl}/recientes`, { headers })
         .toPromise()
         .catch(() => []);
 
-      const solicitudes = response ?? [];
+      const actividades = response ?? [];
 
-      this.pendingRequests = solicitudes.slice(0, 5).map(item => ({
-        id: item.id,
-        estudiante:
-          ((item.estudiante?.nombre ?? '') + ' ' + (item.estudiante?.apellido ?? '')).trim() ||
-          'Desconocido',
-        tipo: item.tipoBeca?.nombre ?? 'Sin tipo',
-        fecha: item.fechaSolicitud
-          ? new Date(item.fechaSolicitud).toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit'
-          })
-          : 'N/A'
+      this.recentActivities = actividades.slice(0, 4).map((item: any) => ({
+        title: item.titulo || 'Nueva actividad',
+        description: item.descripcion || 'Sin descripción',
+        time: item.fecha ? new Date(item.fecha).toLocaleString('es-ES') : 'Hace poco',
+        icon: item.tipo === 'solicitud' ? '⏰' : 
+              item.tipo === 'aprobacion' ? '✅' : 
+              item.tipo === 'registro' ? '👤' : '⭕',
+        color: item.tipo === 'solicitud' ? 'red' : 
+               item.tipo === 'aprobacion' ? 'green' : 
+               item.tipo === 'registro' ? 'blue' : 'gray'
       }));
     } catch (error) {
-      this.handleError('Error al cargar solicitudes recientes', error);
+      this.handleError('Error al cargar actividad reciente', error);
     }
   }
 
   renderizarGraficos(): void {
-    // Destruir gráficos existentes
-    const trendChart = Chart.getChart('trendChart');
-    if (trendChart) trendChart.destroy();
+  // Destruir gráficos existentes
+  const trendChart = Chart.getChart('trendChart');
+  if (trendChart) trendChart.destroy();
 
-    const statusChart = Chart.getChart('statusChart');
-    if (statusChart) statusChart.destroy();
+  const tipoBecaChart = Chart.getChart('tipoBecaChart');
+  if (tipoBecaChart) tipoBecaChart.destroy();
 
-    const tipoBecaChart = Chart.getChart('tipoBecaChart');
-    if (tipoBecaChart) tipoBecaChart.destroy();
-
-    // Tendencia Mensual
-    if (document.getElementById('trendChart')) {
-      new Chart('trendChart', {
-        type: 'line',
-        data: {
-          labels: this.obtenerUltimosMeses(6),
-          datasets: [{
-            label: 'Solicitudes',
-            data: this.monthlyTrend,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  // Tendencia Mensual
+  if (document.getElementById('trendChart')) {
+    new Chart('trendChart', {
+      type: 'line',
+      data: {
+        labels: this.obtenerUltimosMeses(6),
+        datasets: [
+          {
+            label: 'Aprobadas',
+            data: [140, 150, 160, 165, 170, 180],
+            borderColor: '#4CAF50',
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
             fill: true,
             tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
-        }
-      });
-    }
-
-    // Distribución de Estados
-    if (document.getElementById('statusChart')) {
-      new Chart('statusChart', {
-        type: 'doughnut',
-        data: {
-          labels: ['Aprobadas', 'Pendientes', 'En revisión', 'Rechazadas'],
-          datasets: [{
-            data: this.statusDistribution,
-            backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#ef4444']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { position: 'bottom' } }
-        }
-      });
-    }
-
-    // Solicitudes por tipo de beca
-    if (document.getElementById('tipoBecaChart')) {
-      const ctx = document.getElementById('tipoBecaChart') as HTMLCanvasElement;
-      if (ctx) {
-        new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: this.tipoBecaData.map(item => item.tipo),
-            datasets: [
-              {
-                label: 'Solicitudes Totales',
-                data: this.tipoBecaData.map(item => item.total),
-                backgroundColor: '#3b82f6',
-                borderColor: '#1d4ed8',
-                borderWidth: 1
-              },
-              {
-                label: 'Solicitudes Aprobadas',
-                data: this.tipoBecaData.map(item => item.aprobadas),
-                backgroundColor: '#10b981',
-                borderColor: '#047857',
-                borderWidth: 1
-              }
-            ]
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' }, title: { display: true, text: 'Solicitudes por Tipo de Beca' } },
-            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+          {
+            label: 'Solicitudes',
+            data: [120, 130, 140, 150, 160, 170],
+            borderColor: '#2196F3',
+            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+            fill: true,
+            tension: 0.3
           }
-        });
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
       }
-    }
+    });
   }
+
+  // Solicitudes por tipo de beca
+  if (document.getElementById('tipoBecaChart')) {
+    new Chart('tipoBecaChart', {
+      type: 'bar',
+      data: {
+        labels: ['Académica', 'Deportiva', 'Transporte'],
+        datasets: [
+          {
+            label: 'Totales',
+            data: [130, 70, 180],
+            backgroundColor: '#2196F3',
+            borderColor: '#1565C0',
+            borderWidth: 1
+          },
+          {
+            label: 'Aprobadas',
+            data: [80, 40, 120],
+            backgroundColor: '#4CAF50',
+            borderColor: '#388E3C',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top' } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+}
 
   private obtenerUltimosMeses(cantidad: number): string[] {
     const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
@@ -351,8 +313,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     else if (error?.status === 401) this.error += ' (No autorizado)';
   }
 
-  navegarASolicitudes(): void {
-    this.router.navigate(['/solicitud-beca']);
+  getKpiClass(index: number): string {
+    const colors = ['metal-blue', 'metal-green', 'metal-red', 'metal-purple'];
+    return colors[index % colors.length];
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 
   actualizarDashboard(): void {

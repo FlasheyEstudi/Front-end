@@ -1,0 +1,264 @@
+<div class="categorias-container">
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Categorías de Becas</h1>
+    <p>Gestiona las categorías y niveles de becas con precios configurables</p>
+  </div>
+
+  <!-- Botón Nueva Categoría -->
+  <button class="btn-nuevo" (click)="abrirModalCrear()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Nueva Categoría
+  </button>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-icon">🏷️</div>
+      <div class="kpi-content">
+        <h2>4</h2>
+        <p>Categorías Configuradas</p>
+        <small>Total</small>
+      </div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-content">
+        <h2>313</h2>
+        <p>Beneficiarios Totales</p>
+        <small>Activos</small>
+      </div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-content">
+        <h2>C$9,775,000.00</h2>
+        <p>Presupuesto Total</p>
+        <small>Asignado</small>
+      </div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-content">
+        <h2>3</h2>
+        <p>Categorías Activas</p>
+        <small>de 4</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de categorías -->
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Nombre</th>
+            <th>Cobertura</th>
+            <th>Monto</th>
+            <th>Prioridad</th>
+            <th>Beneficiarios</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let categoria of categorias">
+            <td>
+              <div class="categoria-badge">
+                <span class="badge-letter">{{ categoria.Categoria }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="categoria-name">{{ categoria.Nombre }}</div>
+              <div class="categoria-description">{{ categoria.Descripcion }}</div>
+            </td>
+            <td>
+              <div class="cobertura-badge">
+                {{ categoria.Cobertura }}%
+              </div>
+            </td>
+            <td>{{ categoria.Monto | currency }}</td>
+            <td>
+              <div class="prioridad-badge">
+                Prioridad {{ categoria.Prioridad }}
+              </div>
+            </td>
+            <td>
+              <div class="beneficiarios-count">{{ categoria.Beneficiarios }}</div>
+            </td>
+            <td>
+              <span class="status-badge" [class.active]="categoria.EstadoId === 1">
+                {{ getEstadoNombre(categoria.EstadoId) }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-action edit" (click)="editarCategoria(categoria.Id!)">✏️</button>
+              <button class="btn-action delete" (click)="eliminarCategoria(categoria.Id!)" [disabled]="loading">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="categorias.length === 0">
+            <td colspan="8" class="no-results">
+              No hay categorías registradas
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Creación -->
+  <div *ngIf="showCreateModal" class="modal-overlay" (click)="cerrarModalCrear()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Nueva Categoría de Beca</h3>
+        <button class="close-button" (click)="cerrarModalCrear()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="crearCategoria()" #createForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="categoria">Categoría *</label>
+              <select id="categoria" [(ngModel)]="nuevaCategoria.Categoria" name="Categoria" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="nombre">Nombre de la Categoría *</label>
+              <input type="text" id="nombre" [(ngModel)]="nuevaCategoria.Nombre" name="Nombre" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" [(ngModel)]="nuevaCategoria.Descripcion" name="Descripcion" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cobertura">% de Cobertura *</label>
+              <input type="number" id="cobertura" [(ngModel)]="nuevaCategoria.Cobertura" name="Cobertura" required min="1" max="100">
+            </div>
+            <div class="form-group">
+              <label for="monto">Monto (NIO) *</label>
+              <input type="number" id="monto" [(ngModel)]="nuevaCategoria.Monto" name="Monto" required min="1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prioridad">Prioridad *</label>
+              <select id="prioridad" [(ngModel)]="nuevaCategoria.Prioridad" name="Prioridad" required>
+                <option [ngValue]="1">Prioridad 1</option>
+                <option [ngValue]="2">Prioridad 2</option>
+                <option [ngValue]="3">Prioridad 3</option>
+                <option [ngValue]="4">Prioridad 4</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="colorIdentificativo">Color Identificativo</label>
+              <input type="color" id="colorIdentificativo" [(ngModel)]="nuevaCategoria.ColorIdentificativo" name="ColorIdentificativo">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado" [(ngModel)]="nuevaCategoria.EstadoId" name="EstadoId" required>
+              <option [ngValue]="1">Activa</option>
+              <option [ngValue]="2">Inactiva</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secundario" (click)="cerrarModalCrear()">Cancelar</button>
+            <button type="submit" class="btn-primario" [disabled]="createForm.invalid || loading">
+              <span *ngIf="!loading">Crear Categoría</span>
+              <span *ngIf="loading" class="loading-spinner"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Edición -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="cerrarModalEditar()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Editar Categoría de Beca</h3>
+        <button class="close-button" (click)="cerrarModalEditar()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="actualizarCategoria()" #editForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="categoria">Categoría *</label>
+              <select id="categoria" [(ngModel)]="categoriaEdit.Categoria" name="Categoria" required>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="nombre">Nombre de la Categoría *</label>
+              <input type="text" id="nombre" [(ngModel)]="categoriaEdit.Nombre" name="Nombre" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" [(ngModel)]="categoriaEdit.Descripcion" name="Descripcion" rows="3"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="cobertura">% de Cobertura *</label>
+              <input type="number" id="cobertura" [(ngModel)]="categoriaEdit.Cobertura" name="Cobertura" required min="1" max="100">
+            </div>
+            <div class="form-group">
+              <label for="monto">Monto (NIO) *</label>
+              <input type="number" id="monto" [(ngModel)]="categoriaEdit.Monto" name="Monto" required min="1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prioridad">Prioridad *</label>
+              <select id="prioridad" [(ngModel)]="categoriaEdit.Prioridad" name="Prioridad" required>
+                <option [ngValue]="1">Prioridad 1</option>
+                <option [ngValue]="2">Prioridad 2</option>
+                <option [ngValue]="3">Prioridad 3</option>
+                <option [ngValue]="4">Prioridad 4</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="colorIdentificativo">Color Identificativo</label>
+              <input type="color" id="colorIdentificativo" [(ngModel)]="categoriaEdit.ColorIdentificativo" name="ColorIdentificativo">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado" [(ngModel)]="categoriaEdit.EstadoId" name="EstadoId" required>
+              <option [ngValue]="1">Activa</option>
+              <option [ngValue]="2">Inactiva</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secundario" (click)="cerrarModalEditar()">Cancelar</button>
+            <button type="submit" class="btn-primario" [disabled]="editForm.invalid || loading">
+              <span *ngIf="!loading">Actualizar Categoría</span>
+              <span *ngIf="loading" class="loading-spinner"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

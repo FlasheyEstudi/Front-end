@@ -1,9 +1,9 @@
-<div class="main-content dashboard-v2">
+<div class="dashboard">
   <!-- Header / Welcome Banner -->
-  <header class="welcome-banner">
-    <h1>Panel Administrativo</h1>
-    <p>Gestiona y supervisa el sistema de becas estudiantiles</p>
-  </header>
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">Panel Administrativo</h1>
+    <p class="dashboard-subtitle">Gestiona y supervisa el sistema de becas estudiantiles</p>
+  </div>
 
   <!-- Loading Spinner -->
   <div *ngIf="loading" class="loading">
@@ -17,64 +17,94 @@
   </div>
 
   <!-- KPIs -->
-  <section class="kpi-grid">
-    <div class="kpi-card" *ngFor="let kpi of kpis">
-      <span class="kpi-icon">{{ kpi.icon }}</span>
-      <h2>{{ kpi.value | number }}</h2>
-      <p>{{ kpi.label }}</p>
-      <span class="kpi-delta" [class.up]="kpi.deltaType === 'up'" [class.down]="kpi.deltaType === 'down'">
-        {{ kpi.delta > 0 ? '+' : '' }}{{ kpi.delta }} este mes
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <span class="kpi-icon">👥</span>
+      <h2>{{ kpis[0].value | number }}</h2>
+      <p>{{ kpis[0].label }}</p>
+      <span class="kpi-delta" [class.up]="kpis[0].deltaType === 'up'" [class.down]="kpis[0].deltaType === 'down'">
+        {{ kpis[0].delta > 0 ? '+' : '' }}{{ kpis[0].delta }} este mes
       </span>
     </div>
-  </section>
+    <div class="kpi-card green-light">
+      <span class="kpi-icon">🎓</span>
+      <h2>{{ kpis[1].value | number }}</h2>
+      <p>{{ kpis[1].label }}</p>
+      <span class="kpi-delta" [class.up]="kpis[1].deltaType === 'up'" [class.down]="kpis[1].deltaType === 'down'">
+        {{ kpis[1].delta > 0 ? '+' : '' }}{{ kpis[1].delta }} este mes
+      </span>
+    </div>
+    <div class="kpi-card red">
+      <span class="kpi-icon">⏳</span>
+      <h2>{{ kpis[2].value | number }}</h2>
+      <p>{{ kpis[2].label }}</p>
+      <span class="kpi-delta" [class.up]="kpis[2].deltaType === 'up'" [class.down]="kpis[2].deltaType === 'down'">
+        {{ kpis[2].delta > 0 ? '+' : '' }}{{ kpis[2].delta }} este mes
+      </span>
+    </div>
+    <div class="kpi-card green-dark">
+      <span class="kpi-icon">✅</span>
+      <h2>{{ kpis[3].value | number }}</h2>
+      <p>{{ kpis[3].label }}</p>
+      <span class="kpi-delta" [class.up]="kpis[3].deltaType === 'up'" [class.down]="kpis[3].deltaType === 'down'">
+        {{ kpis[3].delta > 0 ? '+' : '' }}{{ kpis[3].delta }} este mes
+      </span>
+    </div>
+  </div>
 
   <!-- Gráficos principales -->
-  <section class="charts-section">
-    <div class="chart-card">
-      <h3>Tendencia Mensual (6 meses)</h3>
-      <canvas id="trendChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <h3>Distribución de Estados</h3>
-      <canvas id="statusChart"></canvas>
-    </div>
-  </section>
+  <div class="chart-container">
+    <h3 class="chart-title">Solicitudes por Tipo de Beca</h3>
+    <p class="chart-description">Comparativa de solicitudes totales vs aprobadas</p>
+    <canvas id="tipoBecaChart"></canvas>
+  </div>
 
-  <!-- Gráfico de solicitudes por tipo de beca -->
-  <section class="chart-section">
-    <div class="chart-card">
-      <h3>Solicitudes por Tipo de Beca</h3>
-      <canvas id="tipoBecaChart"></canvas>
-    </div>
-  </section>
+  <div class="chart-container">
+    <h3 class="chart-title">Tendencia Mensual</h3>
+    <p class="chart-description">Evolución de solicitudes en los últimos 6 meses</p>
+    <canvas id="trendChart"></canvas>
+  </div>
 
-  <!-- Tabla de solicitudes pendientes -->
-  <section class="quick-table">
-    <h3>Solicitudes Pendientes</h3>
-    <div class="table-wrapper">
-      <table class="table-modern">
-        <thead>
-          <tr>
-            <th>Estudiante</th>
-            <th>Tipo</th>
-            <th>Fecha</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let request of pendingRequests">
-            <td>{{ request.estudiante }}</td>
-            <td>{{ request.tipo }}</td>
-            <td>{{ request.fecha }}</td>
-            <td>
-              <button class="btn-sm" (click)="navegarASolicitudes()">Revisar</button>
-            </td>
-          </tr>
-          <tr *ngIf="pendingRequests.length === 0">
-            <td colspan="4" class="no-data">No hay solicitudes pendientes</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Actividad Reciente -->
+  <div class="activity-section">
+    <h3 class="activity-title">Actividad Reciente</h3>
+    <ul class="activity-list">
+      <li class="activity-item" *ngFor="let activity of recentActivities">
+        <span class="activity-icon" [class]="activity.color">{{ activity.icon }}</span>
+        <div class="activity-text">
+          <strong>{{ activity.title }}</strong><br />
+          {{ activity.description }}<br />
+          <small>{{ activity.time }}</small>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Acciones Rápidas -->
+  <div class="quick-actions">
+    <div class="quick-action" (click)="navigateTo('/solicitud-beca')">
+      <div class="icon">⏰</div>
+      <div class="text">
+        <strong>Revisar Solicitud</strong><br />
+        <span class="subtext">Gestionar solicitudes pendientes</span>
+      </div>
+      <div class="arrow">→</div>
     </div>
-  </section>
+    <div class="quick-action" (click)="navigateTo('/estudiantes')">
+      <div class="icon">👤</div>
+      <div class="text">
+        <strong>Gestionar Estudiantes</strong><br />
+        <span class="subtext">Ver y administrar estudiantes</span>
+      </div>
+      <div class="arrow">→</div>
+    </div>
+    <div class="quick-action" (click)="navigateTo('/tipo-beca')">
+      <div class="icon">🎓</div>
+      <div class="text">
+        <strong>Configurar Becas</strong><br />
+        <span class="subtext">Crear y editar tipos de becas</span>
+      </div>
+      <div class="arrow">→</div>
+    </div>
+  </div>
 </div>

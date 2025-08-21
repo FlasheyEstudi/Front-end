@@ -1,13 +1,11 @@
-<aside class="sidebar" [class.collapsed]="collapsed">
+<aside class="sidebar">
   <!-- Header -->
   <div class="sidebar-header">
-    <div class="logo-container" *ngIf="!collapsed">
+    <div class="logo-container">
       <img src="assets/logo-universidad.png" alt="Logo Universidad" class="logo-img" />
       <span class="logo-text">UNIVERSIDAD NACIONAL MULTIDISCIPLINARIA RICARDO MORALES AVILÉS</span>
     </div>
-    <button class="collapse-btn" (click)="toggleCollapse()" aria-label="Colapsar sidebar">
-      <i class="fas {{ collapsed ? 'fa-chevron-right' : 'fa-chevron-left' }}"></i>
-    </button>
+    <div class="admin-badge">Administrador</div>
   </div>
 
   <!-- Navigation -->
@@ -16,30 +14,30 @@
        [routerLink]="item.route"
        class="nav-item"
        [class.active]="isActive(item.route)"
-       [class.disabled]="!item.visible">
+       [class.disabled]="!item.visible"
+       [class.dashboard]="item.label === 'Dashboard'"
+       [class.reportes]="item.label === 'Reportes'">
       <span class="nav-icon" aria-hidden="true">
         <i class="fas" [ngClass]="getIconClass(item.icon)"></i>
       </span>
-      <span *ngIf="!collapsed">{{ item.label }}</span>
+      <span>{{ item.label }}</span>
     </a>
   </nav>
 
   <!-- Footer -->
   <div class="sidebar-footer">
     <div class="user-card">
-      <div class="avatar" aria-label="Avatar usuario">
-        {{ userName.charAt(0).toUpperCase() }}
-      </div>
+      <div class="avatar">{{ userName.charAt(0).toUpperCase() }}</div>
       <div>
-        <strong *ngIf="!collapsed">{{ userName }}</strong><br />
-        <small *ngIf="!collapsed">{{ userRole }}</small>
+        <strong>{{ userName }}</strong><br />
+        <small>{{ userRole }}</small>
       </div>
     </div>
     <button class="logout-btn" (click)="logout()">
       <span class="nav-icon" aria-hidden="true">
         <i class="fas fa-sign-out-alt"></i>
       </span>
-      <span *ngIf="!collapsed">Cerrar Sesión</span>
+      Cerrar Sesión
     </button>
   </div>
 </aside>

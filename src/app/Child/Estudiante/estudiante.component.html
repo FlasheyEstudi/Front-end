@@ -1,11 +1,131 @@
-<div class="estudiantes-contenedor">
+<div class="estudiantes-contenido">
   <!-- Mensajes de error -->
   <div *ngIf="error" class="form-group error-message">
     <span class="error-icon">⚠️</span>
     {{ error }}
   </div>
 
-  <!-- Modal de registro -->
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Gestión de Estudiantes</h1>
+    <p>Administra y supervisa a los estudiantes registrados</p>
+  </div>
+
+  <!-- Botón Nuevo Estudiante -->
+  <button class="btn-nuevo" (click)="abrirModalRegistro()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Nuevo Estudiante
+  </button>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card green">
+      <div class="kpi-icon">🎓</div>
+      <div class="kpi-content">
+        <h2>{{ totalEstudiantes }}</h2>
+        <p>Estudiantes Registrados</p>
+      </div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">👤</div>
+      <div class="kpi-content">
+        <h2>{{ estudiantesActivos }}</h2>
+        <p>Estudiantes Activos</p>
+      </div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">📚</div>
+      <div class="kpi-content">
+        <h2>{{ carrerasDisponibles.length }}</h2>
+        <p>Carreras Representadas</p>
+      </div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">⏰</div>
+      <div class="kpi-content">
+        <h2>{{ edadPromedio }}</h2>
+        <p>Edad Promedio</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters-container">
+    <input type="text" placeholder="Buscar por nombre o correo..." [(ngModel)]="searchTerm" (input)="filtrarEstudiantes()" class="search-input">
+    <select [(ngModel)]="filtroEstado" (change)="filtrarEstudiantes()" class="select-filter">
+      <option value="">Todos los estados</option>
+      <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">{{ estado.Nombre }}</option>
+    </select>
+    <select [(ngModel)]="filtroCarrera" (change)="filtrarEstudiantes()" class="select-filter">
+      <option value="">Todas las carreras</option>
+      <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">{{ carrera.Nombre }}</option>
+    </select>
+    <button class="filter-button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00.707.293H18a1 1 0 011 1v3a1 1 0 01-1 1H8a1 1 0 01-1-1v-3a1 1 0 011-1h3.293a1 1 0 00.707-.293l6.414-6.414A1 1 0 0121 8.586V4z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Filtros
+    </button>
+    <span class="filter-count">7 estudiantes</span>
+  </div>
+
+  <!-- Tabla de estudiantes -->
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Estudiante</th>
+            <th>Edad</th>
+            <th>Carrera</th>
+            <th>Email</th>
+            <th>Registro</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let estudiante of filteredEstudiantes">
+            <td>
+              <div class="avatar-container">
+                <div class="avatar">{{ estudiante.Nombre.charAt(0).toUpperCase() }}</div>
+                <div class="student-name">
+                  <strong>{{ estudiante.Nombre }} {{ estudiante.Apellido }}</strong><br />
+                  <small>{{ getBecasActivas(estudiante.Id) }} beca activa</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ estudiante.Edad }} años</td>
+            <td>
+              <div class="carrera-name">{{ getCarreraNombre(estudiante.CarreraId) }}</div>
+              <div class="carrera-programa">{{ getProgramaNombre(estudiante.CarreraId) }}</div>
+            </td>
+            <td>{{ estudiante.Correo }}</td>
+            <td>{{ estudiante.FechaRegistro | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <span class="status-badge" [class.active]="estudiante.EstadoId === 1">
+                {{ getEstadoNombre(estudiante.EstadoId) }}
+              </span>
+            </td>
+            <td>
+              <button class="btn-action view" (click)="verEstudiante(estudiante.Id)">👁️</button>
+              <button class="btn-action edit" (click)="editarEstudiante(estudiante.Id)">✏️</button>
+              <button class="btn-action delete" (click)="deleteEstudiante(estudiante.Id)" [disabled]="loading">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredEstudiantes.length === 0">
+            <td colspan="7" class="no-results">
+              No se encontraron estudiantes
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Registro -->
   <div *ngIf="showModal" class="modal-overlay" (click)="cerrarModalRegistro()">
     <div class="modal-registro" (click)="$event.stopPropagation()">
       <div class="modal-header">
@@ -73,151 +193,71 @@
     </div>
   </div>
 
-  <!-- Modal de Credenciales -->
-  <div *ngIf="showCredentialsModal" class="modal-overlay" (click)="closeCredentialsModal()">
-    <div class="modal credentials-modal" (click)="$event.stopPropagation()">
+  <!-- Modal de Edición -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="cerrarModalEdicion()">
+    <div class="modal-editar" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>Estudiante Registrado Exitosamente</h3>
-        <button class="close-button" (click)="closeCredentialsModal()">
+        <h3>Editar Estudiante</h3>
+        <button class="close-button" (click)="cerrarModalEdicion()">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
       </div>
       <div class="modal-body">
-        <p>Se han generado las siguientes credenciales para el nuevo estudiante:</p>
-        <div class="credentials-info">
-          <div class="credential-item" *ngIf="credencialesEstudiante">
-            <span class="credential-label">Usuario:</span>
-            <div class="credential-value-container">
-              <span class="credential-value">{{ credencialesEstudiante.username }}</span>
-              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.username, 'Usuario')">📋</button>
+        <form (ngSubmit)="onSubmitEditStudent()" #editForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre *</label>
+              <input type="text" id="nombre" [(ngModel)]="estudianteEdit.Nombre" name="Nombre" required>
+            </div>
+            <div class="form-group">
+              <label for="apellido">Apellido *</label>
+              <input type="text" id="apellido" [(ngModel)]="estudianteEdit.Apellido" name="Apellido" required>
             </div>
           </div>
-          <div class="credential-item" *ngIf="credencialesEstudiante">
-            <span class="credential-label">Email:</span>
-            <div class="credential-value-container">
-              <span class="credential-value">{{ credencialesEstudiante.correo }}</span>
-              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.correo, 'Email')">📋</button>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edad">Edad *</label>
+              <input type="number" id="edad" [(ngModel)]="estudianteEdit.Edad" name="Edad" required min="1">
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico *</label>
+              <input type="email" id="correo" [(ngModel)]="estudianteEdit.Correo" name="Correo" required>
             </div>
           </div>
-          <div class="credential-item" *ngIf="credencialesEstudiante">
-            <span class="credential-label">Contraseña:</span>
-            <div class="credential-value-container">
-              <span class="credential-value">{{ credencialesEstudiante.password }}</span>
-              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.password, 'Contraseña')">📋</button>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado</label>
+              <select id="estado" [(ngModel)]="estudianteEdit.EstadoId" name="EstadoId">
+                <option [ngValue]="undefined">Seleccione estado</option>
+                <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">
+                  {{ estado.Nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="carrera">Carrera</label>
+              <select id="carrera" [(ngModel)]="estudianteEdit.CarreraId" name="CarreraId">
+                <option [ngValue]="undefined">Seleccione carrera</option>
+                <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">
+                  {{ carrera.Nombre }}
+                </option>
+              </select>
             </div>
           </div>
-        </div>
-        <div class="notification">
-          <span>⚠️ Guarde estas credenciales en un lugar seguro. La contraseña no se podrá recuperar posteriormente.</span>
-        </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secundario" (click)="cerrarModalEdicion()">Cancelar</button>
+            <button type="submit" class="btn-primario" [disabled]="editForm.invalid || loading">
+              <span *ngIf="!loading">Actualizar Estudiante</span>
+              <span *ngIf="loading" class="loading-spinner"></span>
+            </button>
+          </div>
+        </form>
       </div>
-      <div class="modal-footer">
-        <button class="btn-primario" (click)="closeCredentialsModal()">Aceptar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Overlay de carga -->
-  <div *ngIf="loading" class="loading-overlay">
-    <div class="spinner"></div>
-  </div>
-
-  <!-- Header -->
-  <div class="page-header">
-    <h1>Gestión de Estudiantes</h1>
-    <p>Administra los estudiantes del sistema de becas</p>
-  </div>
-
-  <!-- KPIs -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-icon">👥</div>
-      <div class="kpi-content">
-        <h2>{{ totalEstudiantes }}</h2>
-        <p>Total Estudiantes</p>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon">✅</div>
-      <div class="kpi-content">
-        <h2>{{ estudiantesActivos }}</h2>
-        <p>Estudiantes Activos</p>
-      </div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-icon">🎓</div>
-      <div class="kpi-content">
-        <h2>{{ carrerasDisponibles.length }}</h2>
-        <p>Carreras Disponibles</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Panel de control -->
-  <div class="control-panel">
-    <div class="boton-nuevo">
-      <button class="btn-nuevo" (click)="abrirModalRegistro()">➕ Nuevo Estudiante</button>
-    </div>
-    <div class="search-filters">
-      <input type="text" placeholder="Buscar estudiantes..." [(ngModel)]="searchTerm" (input)="filtrarEstudiantes()">
-      <select [(ngModel)]="filtroEstado" (change)="filtrarEstudiantes()">
-        <option value="">Todos los estados</option>
-        <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">{{ estado.Nombre }}</option>
-      </select>
-      <select [(ngModel)]="filtroCarrera" (change)="filtrarEstudiantes()">
-        <option value="">Todas las carreras</option>
-        <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">{{ carrera.Nombre }}</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- Tabla de estudiantes -->
-  <div class="table-container">
-    <div class="table-responsive">
-      <table class="table-modern">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Apellido</th>
-            <th>Edad</th>
-            <th>Correo</th>
-            <th>Estado</th>
-            <th>Carrera</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let estudiante of filteredEstudiantes">
-            <td>{{ estudiante.Nombre }}</td>
-            <td>{{ estudiante.Apellido }}</td>
-            <td>{{ estudiante.Edad }} años</td>
-            <td>{{ estudiante.Correo }}</td>
-            <td>
-              <span class="status-badge" [class.active]="estudiante.EstadoId === 1">
-                {{ getEstadoNombre(estudiante.EstadoId) }}
-              </span>
-            </td>
-            <td>{{ getCarreraNombre(estudiante.CarreraId) }}</td>
-            <td>
-              <button class="btn-action delete" (click)="deleteEstudiante(estudiante.Id)" [disabled]="loading">🗑️</button>
-            </td>
-          </tr>
-          <tr *ngIf="filteredEstudiantes.length === 0">
-            <td colspan="7" class="no-results">
-              No se encontraron estudiantes
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Toast -->
-  <div *ngIf="showToast" class="toast-container">
-    <div class="toast {{ toastType }}">
-      {{ toastMessage }}
     </div>
   </div>
 </div>

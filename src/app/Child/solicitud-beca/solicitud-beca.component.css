@@ -1,205 +1,219 @@
-/* ===========================================================
- Solicitud Beca Component - Unificado con Global
-=========================================================== */
-.solicitud-container {
-  width: 100%;
-  padding: 1.5rem;
-  background: var(--background);
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  animation: fadeIn 0.5s ease-out;
+/* Dashboard Container */
+.dashboard-container {
+  margin-left: 260px;
+  padding: 2rem;
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.solicitud-card {
-  background: var(--card);
-  color: var(--card-foreground);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow);
-  overflow: hidden;
-  transition: var(--shadow) 0.3s ease;
+/* Header */
+.header {
+  margin-bottom: 2rem;
 }
 
-.solicitud-card:hover {
-  box-shadow: var(--shadow-md);
+.title {
+  font-size: 2rem;
+  color: #2E7D32;
+  margin: 0;
+  font-weight: 700;
 }
 
-.card-header {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  padding: 1.5rem;
+.subtitle {
+  color: #555;
+  font-size: 1rem;
+  margin-top: 0.3rem;
+}
+
+/* KPI Cards */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.kpi-card {
+  padding: 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   text-align: center;
+  color: white;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.card-title {
-  font-size: 1.75rem;
-  font-weight: var(--font-weight-bold);
-  margin-bottom: 0.25rem;
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
-.card-subtitle {
-  font-size: 0.95rem;
-  opacity: 0.9;
+.kpi-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
 }
 
-/* Alertas */
-.alert {
-  padding: 0.75rem 1rem;
-  border-radius: var(--border-radius);
-  font-weight: var(--font-weight-medium);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.kpi-label {
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
-.alert-success {
-  background-color: var(--success);
-  color: var(--white);
-  border-left: 4px solid var(--success);
-}
+/* Colores de KPIs */
+.kpi-card.blue { background: #2196f3; }
+.kpi-card.green { background: #4caf50; }
+.kpi-card.red { background: #f44336; }
+.kpi-card.gray { background: #616161; }
 
-.alert-error {
-  background-color: var(--destructive);
-  color: var(--destructive-foreground);
-  border-left: 4px solid var(--destructive);
-}
-
-/* Loading Overlay */
-.loading-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(255,255,255,0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.spinner {
-  width: 40px; height: 40px;
-  border: 4px solid var(--muted);
-  border-top: 4px solid var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-/* Formulario */
-.solicitud-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.form-label {
-  font-weight: var(--font-weight-medium);
-  color: var(--foreground);
-}
-
-.form-input, .form-select, .form-textarea {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--border-radius);
-  background: var(--input-background);
-  transition: all 0.3s ease;
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  border-color: var(--primary-foreground);
-  box-shadow: 0 0 0 3px rgba(198,231,255,0.3);
-}
-
-.form-textarea { resize: vertical; min-height: 100px; }
-
-.form-actions {
+/* Filtros */
+.filters {
   display: flex;
   gap: 1rem;
-  justify-content: flex-end;
+  margin-bottom: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.btn {
-  padding: 0.5rem 1.5rem;
+.search-bar {
+  position: relative;
+  width: 250px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+}
+
+.search-bar i {
+  padding: 0 0.8rem;
+  color: #888;
+}
+
+.search-bar input {
   border: none;
-  border-radius: var(--border-radius);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background: var(--primary);
-  color: var(--primary-foreground);
-}
-.btn-primary:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-
-.btn-secondary {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
-}
-.btn-secondary:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
-
-/* Beca Cards */
-.beca-types-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.beca-type-card {
-  background: var(--card);
-  border-radius: var(--border-radius);
-  padding: 1rem;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.beca-type-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-.beca-type-card h4 { color: var(--foreground); margin-bottom: 0.25rem; }
-.beca-type-card p { color: var(--muted-foreground); font-size: 0.9rem; }
-
-/* Monto badge */
-.monto-badge {
-  background: var(--accent);
-  color: var(--accent-foreground);
-  padding: 0.25rem 0.5rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: var(--font-weight-medium);
-}
-
-/* Gráficas */
-.chart-card {
-  background: var(--card);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-sm);
+  padding: 0.5rem 0.8rem;
   width: 100%;
-  height: 300px; /* alto fijo */
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.select-filter {
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  background: white;
+}
+
+.total-count {
+  margin-left: auto;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Tabla */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+th, td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+th {
+  background: #f1f3f5;
+  font-size: 0.85rem;
+  color: #555;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+tr:nth-child(even) {
+  background: #fafafa;
+}
+
+tr:hover {
+  background: #f1f1f1;
+  transition: background 0.2s;
+}
+
+/* Student Info */
+.student-info {
   display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  color: #333;
+  display: flex;
+  justify-content: center;
   align-items: center;
+  font-weight: bold;
+  font-size: 0.85rem;
+}
+
+.student-name { font-weight: 600; }
+.student-id, .student-program { font-size: 0.8rem; color: #666; }
+
+/* Status Badge */
+.status-badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   justify-content: center;
 }
 
-.chart-card canvas { width: 100% !important; height: 100% !important; }
+.status-badge.approved { background: #4caf50; color: white; }
+.status-badge.pending-review { background: #2196f3; color: white; }
+.status-badge.pending { background: #f44336; color: white; }
+.status-badge.rejected { background: #616161; color: white; }
+
+/* Botón Revisar */
+.btn-revisar {
+  padding: 0.4rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #2196f3;
+  color: #2196f3;
+  background: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: 0.25s all ease;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.btn-revisar:hover {
+  background: #e3f2fd;
+  transform: scale(1.05);
+}
 
 /* Responsive */
-@media (max-width:768px) {
-  .form-grid { grid-template-columns: 1fr; }
-  .form-actions { flex-direction: column; }
-  .btn { width: 100%; }
+@media (max-width: 768px) {
+  .dashboard-container { margin-left: 60px; padding: 1rem; }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .filters { flex-direction: column; align-items: stretch; }
+  .search-bar, .select-filter { width: 100%; }
+  .total-count { margin-left: 0; margin-top: 0.5rem; }
 }

@@ -9,46 +9,6 @@
   animation: gradientShift 8s ease infinite;
   z-index: -1;
 
-  .logo-container {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-
-    .logo {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      color: #030213;
-      transition: transform 0.3s ease;
-    }
-
-    .logo:hover {
-      transform: scale(1.05);
-    }
-  }
-
-  .register-title {
-    text-align: center;
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: white;
-    margin: 0;
-    letter-spacing: 0.5px;
-  }
-
-  .subtitle {
-    text-align: center;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.9rem;
-    margin-top: 0.5rem;
-  }
-
   .register-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
@@ -69,149 +29,169 @@
     &:hover {
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
     }
-  }
 
-  .register-form {
-    margin-top: 1.5rem;
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
 
-    .form-group {
-      margin-bottom: 1.2rem;
-
-      label {
-        display: block;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-        color: rgba(255, 255, 255, 0.9);
-      }
-
-      .input-wrapper {
-        position: relative;
+      .logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        justify-content: center;
+        font-size: 2rem;
+        color: #030213;
+        transition: transform 0.3s ease;
+      }
+
+      .logo:hover {
+        transform: scale(1.05);
+      }
+    }
+
+    .register-title {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: white;
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .register-form {
+      margin-top: 1.5rem;
+
+      .form-group {
+        margin-bottom: 1.2rem;
+
+        label {
+          display: block;
+          font-size: 0.9rem;
+          margin-bottom: 0.5rem;
+          color: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 0.75rem;
+          overflow: hidden;
+          background: rgba(255, 255, 255, 0.1);
+
+          i {
+            padding: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+          }
+
+          input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: none;
+            background: transparent;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s ease;
+
+            &::placeholder {
+              color: rgba(255, 255, 255, 0.7);
+            }
+
+            &:focus {
+              box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+            }
+          }
+
+          .password-toggle {
+            cursor: pointer;
+            padding: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+
+            &:hover {
+              color: white;
+            }
+          }
+        }
+
+        .validation-error {
+          color: #e74c3c;
+          font-size: 0.8rem;
+          margin-top: 0.3rem;
+        }
+      }
+
+      .btn-register {
+        width: 100%;
+        padding: 0.8rem;
+        background: linear-gradient(to right, #00b4d8, #66ff00);
+        color: white;
+        border: none;
         border-radius: 0.75rem;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.1);
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
 
         i {
-          padding: 0.75rem;
-          color: rgba(255, 255, 255, 0.7);
           font-size: 0.9rem;
         }
 
-        input,
-        select {
-          flex: 1;
-          padding: 0.75rem 1rem;
-          border: none;
-          background: transparent;
-          color: white;
-          font-size: 1rem;
-          outline: none;
-          transition: all 0.2s ease;
-
-          &::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-          }
-
-          &:focus {
-            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.3);
-          }
+        &:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
 
-        .password-toggle {
-          cursor: pointer;
-          padding: 0.75rem;
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 0.9rem;
-          transition: color 0.2s ease;
-
-          &:hover {
-            color: white;
-          }
+        &:not(:disabled):hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
       }
-
-      .validation-error {
-        color: #e74c3c;
-        font-size: 0.8rem;
-        margin-top: 0.3rem;
-      }
     }
 
-    .btn-register {
-      width: 100%;
-      padding: 0.8rem;
-      background: linear-gradient(to right, #00b4d8, #66ff00);
-      color: white;
-      border: none;
-      border-radius: 0.75rem;
-      font-weight: 500;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
+    .login-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.8);
 
-      i {
-        font-size: 0.9rem;
-      }
+      a {
+        color: #ffffff;
+        text-decoration: underline;
+        font-weight: 500;
+        transition: color 0.2s ease;
 
-      &:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      &:not(:disabled):hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        &:hover {
+          color: #00b4d8;
+          text-decoration: none;
+        }
       }
     }
   }
 
-  .login-link {
-    text-align: center;
-    margin-top: 1.5rem;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
-
-    a {
-      color: #ffffff;
-      text-decoration: underline;
-      font-weight: 500;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: #00b4d8;
-        text-decoration: none;
-      }
-    }
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
-
-  .alert-message {
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-
-    &.error-message {
-      background: rgba(231, 76, 54, 0.2);
-      color: #e74c3c;
-      border: 1px solid rgba(231, 76, 54, 0.3);
-    }
-
-    &.loading-message {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-  }
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }

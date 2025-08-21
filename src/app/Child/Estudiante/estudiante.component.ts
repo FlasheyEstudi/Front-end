@@ -11,6 +11,7 @@ interface Estudiante {
   Correo: string;
   EstadoId?: number;
   CarreraId?: number;
+  FechaRegistro?: string;
   EstadoNombre?: string;
   CarreraNombre?: string;
 }
@@ -18,6 +19,7 @@ interface Estudiante {
 interface Carrera {
   Id: number;
   Nombre: string;
+  Programa?: string;
 }
 
 interface Estado {
@@ -39,18 +41,13 @@ export class EstudianteComponent implements OnInit {
   loading: boolean = false;
   totalEstudiantes: number = 0;
   estudiantesActivos: number = 0;
-  
-  // Modal de registro
-  showModal: boolean = false;
-  
-  // Modal de credenciales
-  showCredentialsModal: boolean = false;
-  credencialesEstudiante = {
-    username: '',
-    correo: '',
-    password: ''
-  };
+  edadPromedio: number = 0;
 
+  // Modales
+  showModal: boolean = false;
+  showEditModal: boolean = false;
+  
+  // Datos para modales
   nuevoEstudiante = {
     Nombre: '',
     Apellido: '',
@@ -60,13 +57,26 @@ export class EstudianteComponent implements OnInit {
     CarreraId: undefined as number | undefined
   };
 
+  estudianteEdit: Estudiante = {
+    Id: 0,
+    Nombre: '',
+    Apellido: '',
+    Edad: 0,
+    Correo: '',
+    EstadoId: undefined,
+    CarreraId: undefined,
+    FechaRegistro: '',
+    EstadoNombre: '',
+    CarreraNombre: ''
+  };
+
   searchTerm: string = '';
   filtroEstado: string = '';
   filtroCarrera: string = '';
   carrerasDisponibles: Carrera[] = [];
   estadosDisponibles: Estado[] = [];
 
-  // Para mostrar notificaciones toast
+  // Toast
   showToast: boolean = false;
   toastMessage: string = '';
   toastType: 'success' | 'error' = 'success';
@@ -145,6 +155,7 @@ export class EstudianteComponent implements OnInit {
         Correo: item.Correo || item.correo || '',
         EstadoId: item.EstadoId !== undefined ? item.EstadoId : item.estadoId,
         CarreraId: item.CarreraId !== undefined ? item.CarreraId : item.carreraId,
+        FechaRegistro: item.FechaRegistro || item.fechaRegistro,
         EstadoNombre: this.getEstadoNombre(item.EstadoId !== undefined ? item.EstadoId : item.estadoId),
         CarreraNombre: this.getCarreraNombre(item.CarreraId !== undefined ? item.CarreraId : item.carreraId)
       };
@@ -164,9 +175,23 @@ export class EstudianteComponent implements OnInit {
     return carrera ? carrera.Nombre : `ID: ${id}`;
   }
 
+  getProgramaNombre(id?: number): string {
+    if (id == null || id === 0) return '';
+    const carrera = this.carrerasDisponibles.find(c => c.Id === id);
+    return carrera ? carrera.Programa || '' : '';
+  }
+
+  getBecasActivas(estudianteId: number): string {
+    // Simulación de becas activas
+    return Math.random() > 0.5 ? '1' : '';
+  }
+
   calcularKPIs() {
     this.totalEstudiantes = this.estudiantes.length;
     this.estudiantesActivos = this.estudiantes.filter(e => e.EstadoId === 1).length;
+    this.edadPromedio = this.estudiantes.length > 0 
+      ? Math.round(this.estudiantes.reduce((sum, e) => sum + e.Edad, 0) / this.estudiantes.length)
+      : 0;
   }
 
   private validarEstudiante(): boolean {
@@ -202,14 +227,18 @@ export class EstudianteComponent implements OnInit {
     this.resetFormulario();
   }
 
-  // Abrir modal de credenciales
-  abrirCredentialsModal() {
-    this.showCredentialsModal = true;
+  // Abrir modal de edición
+  editarEstudiante(id: number) {
+    const estudiante = this.estudiantes.find(e => e.Id === id);
+    if (estudiante) {
+      this.estudianteEdit = { ...estudiante };
+      this.showEditModal = true;
+    }
   }
 
-  // Cerrar modal de credenciales
-  closeCredentialsModal() {
-    this.showCredentialsModal = false;
+  // Cerrar modal de edición
+  cerrarModalEdicion() {
+    this.showEditModal = false;
   }
 
   // Función para copiar al portapapeles
@@ -254,22 +283,54 @@ export class EstudianteComponent implements OnInit {
         next: (response) => {
           console.log('Respuesta del servidor:', response);
           
-          // Generar credenciales automáticamente (simulado)
-          this.credencialesEstudiante = {
-            username: this.generateUsername(this.nuevoEstudiante.Nombre, this.nuevoEstudiante.Apellido),
-            correo: this.nuevoEstudiante.Correo,
-            password: this.generatePassword()
-          };
-          
           this.resetFormulario();
           this.cargarDatosIniciales();
           this.cerrarModalRegistro();
-          this.abrirCredentialsModal();
           this.loading = false;
         },
         error: (err) => {
           console.error('Error completo:', err);
           this.error = 'Error al crear estudiante: ' + (err.error?.message || err.message || 'Error desconocido');
+          this.loading = false;
+        }
+      });
+  }
+
+  onSubmitEditStudent() {
+    if (!this.validarEstudiante()) return;
+    this.loading = true;
+    
+    const dataEnviar = {
+      Id: this.estudianteEdit.Id,
+      Nombre: this.estudianteEdit.Nombre,
+      Apellido: this.estudianteEdit.Apellido,
+      Edad: Number(this.estudianteEdit.Edad),
+      Correo: this.estudianteEdit.Correo,
+      EstadoId: this.estudianteEdit.EstadoId ? Number(this.estudianteEdit.EstadoId) : null,
+      CarreraId: this.estudianteEdit.CarreraId ? Number(this.estudianteEdit.CarreraId) : null,
+    };
+
+    console.log('Enviando datos:', dataEnviar);
+
+    this.http.put<any>(`http://localhost:3000/api-beca/estudiante/${this.estudianteEdit.Id}`, dataEnviar)
+      .subscribe({
+        next: (response) => {
+          console.log('Respuesta del servidor:', response);
+          
+          // Actualizar el estudiante en la lista
+          const index = this.estudiantes.findIndex(e => e.Id === this.estudianteEdit.Id);
+          if (index !== -1) {
+            this.estudiantes[index] = { ...this.estudianteEdit };
+            this.filteredEstudiantes = [...this.estudiantes];
+          }
+          
+          this.cerrarModalEdicion();
+          this.showToastMessage('Estudiante actualizado correctamente', 'success');
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Error completo:', err);
+          this.error = 'Error al actualizar estudiante: ' + (err.error?.message || err.message || 'Error desconocido');
           this.loading = false;
         }
       });
@@ -327,6 +388,10 @@ export class EstudianteComponent implements OnInit {
           this.showToastMessage('Error al eliminar estudiante', 'error');
         }
       });
+  }
+
+  verEstudiante(id: number) {
+    alert(`Ver estudiante con ID: ${id}`);
   }
 
   resetFormulario() {

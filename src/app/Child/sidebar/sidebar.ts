@@ -1,3 +1,4 @@
+// src/app/Child/Sidebar/sidebar.ts
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -65,7 +66,7 @@ export class SidebarComponent implements OnInit {
       // Administrativos
       { label: 'Estudiantes', icon: 'users', route: '/estudiantes', visible: this.userRole === 'admin' },
       { label: 'Gestión Becas', icon: 'graduation-cap', route: '/tipo-beca', visible: this.userRole === 'admin' },
-      { label: 'Categorías', icon: 'tags', route: '/area-conocimiento', visible: this.userRole === 'admin' },
+      { label: 'Categorías', icon: 'tags', route: '/categorias', visible: this.userRole === 'admin' },
       { label: 'Solicitudes', icon: 'file', route: '/solicitud-beca', visible: this.userRole === 'admin' },
       { label: 'Beneficiarios', icon: 'user-friends', route: '/estudiantes', visible: this.userRole === 'admin' },
       { label: 'Pagos', icon: 'credit-card', route: '/detalle-pago', visible: this.userRole === 'admin' },

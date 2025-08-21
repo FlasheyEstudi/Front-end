@@ -1,101 +1,132 @@
-/* Configuración - Estilo exacto al ejemplo */
+/* ==========================================================
+   CONTENEDOR PRINCIPAL
+========================================================== */
 .config-main-container {
   margin-left: 260px;
   padding: 2rem;
   min-height: 100vh;
   background: #f8f9fa;
   transition: margin-left 0.3s ease;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  color: #333;
 }
 
-/* Header principal */
+/* ==========================================================
+   HEADER
+========================================================== */
 .config-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid #e6e9ef;
 }
 
-.header-content {
-  flex: 1;
+.header-content h1 {
+  font-size: 2rem;
+  color: #1976d2; /* Azul institucional más serio */
+  font-weight: 700;
+  margin-bottom: 0.3rem;
 }
 
-.config-header h1 {
-  font-size: 1.8rem;
-  color: #2196f3;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+.header-content p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.4;
 }
 
-.config-header p {
-  color: #666;
-  font-size: 0.95rem;
-}
-
-/* Tabs Navigation */
+/* ==========================================================
+   TABS DE NAVEGACIÓN
+========================================================== */
 .config-tabs {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   margin-bottom: 2rem;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: #ccc #f8f9fa;
+  scrollbar-color: #bbb #f8f9fa;
 }
 
 .config-tabs::-webkit-scrollbar {
   height: 6px;
 }
-
 .config-tabs::-webkit-scrollbar-track {
-  background: #f8f9fa;
+  background: transparent;
 }
-
 .config-tabs::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 3px;
+  background: #bbb;
+  border-radius: 4px;
 }
 
 .tab-button {
-  padding: 0.75rem 1.5rem;
-  background: #f8f9fa;
-  border: none;
-  border-radius: 6px;
+  padding: 0.7rem 1.2rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   white-space: nowrap;
+  color: #444;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .tab-button:hover {
-  background: #e9ecef;
-  transform: translateY(-1px);
+  background: #f1f5f9;
+  border-color: #bbb;
+  transform: translateY(-2px);
 }
 
 .tab-button.active {
-  background: #2196f3;
-  color: white;
-  box-shadow: 0 2px 6px rgba(33, 150, 243, 0.2);
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+  box-shadow: 0 3px 8px rgba(25, 118, 210, 0.3);
 }
 
-/* Content */
+/* ==========================================================
+   CONTENIDO
+========================================================== */
 .config-content {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 1.5rem;
-  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  padding: 2rem;
+  border: 1px solid #e0e0e0;
+  animation: fadeIn 0.3s ease;
 }
 
-/* Responsive */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+@media (max-width: 1024px) {
+  .config-main-container {
+    margin-left: 200px;
+    padding: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .config-main-container {
     margin-left: 60px;
     padding: 1rem;
+  }
+
+  .config-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 
   .config-tabs {
@@ -105,6 +136,6 @@
 
   .tab-button {
     width: 100%;
-    text-align: left;
+    justify-content: flex-start;
   }
 }

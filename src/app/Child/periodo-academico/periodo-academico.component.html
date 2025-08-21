@@ -1,4 +1,5 @@
 <div class="config-container">
+  <!-- HEADER -->
   <header class="config-header">
     <div class="header-content">
       <h1>Períodos Académicos</h1>
@@ -9,10 +10,13 @@
     </button>
   </header>
 
-  <!-- Modal/Formulario -->
+  <!-- MODAL FLOANTE -->
   <div *ngIf="editMode" class="form-section">
     <div class="form-container">
-      <h2>{{ editMode ? 'Editar Período' : 'Registrar Nuevo Período' }}</h2>
+      <div class="modal-header">
+        <h2>{{ periodoAcademicoToEdit ? 'Editar Período' : 'Registrar Nuevo Período' }}</h2>
+        <button class="btn-secundario" (click)="cancelEdit()">&times;</button>
+      </div>
       <form (ngSubmit)="guardarPeriodoAcademico()" #periodoForm="ngForm">
         <div class="form-group">
           <label>Nombre *</label>
@@ -38,21 +42,35 @@
           </select>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-primario" [disabled]="periodoForm.invalid">{{ editMode ? 'Actualizar' : 'Registrar' }}</button>
+          <button type="submit" class="btn-primario" [disabled]="periodoForm.invalid">
+            {{ periodoAcademicoToEdit ? 'Actualizar' : 'Registrar' }}
+          </button>
           <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <div *ngIf="errorMsg" class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</div>
-  <div *ngIf="successMsg" class="alert alert-success"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
+  <!-- MENSAJES DE ESTADO -->
+  <div *ngIf="errorMsg" class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMsg }}
+  </div>
 
+  <!-- TABLA DE PERÍODOS -->
   <div class="table-responsive">
     <table class="table-modern">
       <thead>
         <tr>
-          <th>ID</th><th>Nombre</th><th>Año</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Año</th>
+          <th>Inicio</th>
+          <th>Fin</th>
+          <th>Estado</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -64,8 +82,12 @@
           <td>{{ formatDate(periodo.FechaFin) }}</td>
           <td>{{ periodo.Estadonombre }}</td>
           <td class="actions-cell">
-            <button class="btn-edit" (click)="editPeriodoAcademico(periodo)"><i class="fas fa-edit"></i></button>
-            <button class="btn-delete" (click)="deletePeriodoAcademico(periodo.Id)"><i class="fas fa-trash"></i></button>
+            <button class="btn-edit" (click)="editPeriodoAcademico(periodo)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-delete" (click)="deletePeriodoAcademico(periodo.Id)">
+              <i class="fas fa-trash"></i>
+            </button>
           </td>
         </tr>
         <tr *ngIf="filteredPeriodosAcademicos.length === 0">

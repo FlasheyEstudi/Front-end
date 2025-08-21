@@ -1,43 +1,51 @@
-/* Áreas de Conocimiento - Estilo exacto al ejemplo */
-.area-container {
-  margin-left: 260px;
-  padding: 2rem;
+/* =====================================
+   ÁREAS DE CONOCIMIENTO - Configuración
+===================================== */
+
+.config-container {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: #f8f9fa;
-  transition: margin-left 0.3s ease;
+  background-color: #f5f7fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 1rem 2rem;
 }
 
-/* Header principal */
-.area-header {
+/* ===== HEADER ===== */
+.config-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #eee;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
 }
 
-.area-header h1 {
+.config-header h1 {
+  margin: 0;
   font-size: 1.8rem;
-  color: #2196f3;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  color: #030213;
 }
 
-.area-header p {
+.config-header p {
+  margin: 0.3rem 0 0;
+  font-size: 0.9rem;
   color: #666;
-  font-size: 0.95rem;
 }
 
+/* ===== BOTÓN AGREGAR ===== */
 .btn-primary {
   background: #4caf50;
   color: white;
   border: none;
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
   font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -49,42 +57,61 @@
   transform: translateY(-1px);
 }
 
-/* Tabla de áreas */
+/* ===== ALERTAS ===== */
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.alert-error {
+  background: #ffe6e6;
+  color: #d32f2f;
+}
+
+.alert-success {
+  background: #e6f7e6;
+  color: #388e3c;
+}
+
+/* ===== TABLA ===== */
 .table-responsive {
   overflow-x: auto;
 }
 
-table {
+.table-modern {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  color: #333;
-  margin: 1rem 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
   overflow: hidden;
 }
 
-th, td {
+.table-modern th, .table-modern td {
   padding: 0.8rem 1rem;
   text-align: left;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.table-modern th {
+  background: #f8f9fa;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.85rem;
   border-bottom: 1px solid #eee;
 }
 
-th {
-  background: #f8f9fa;
-  color: #666;
-  font-weight: 500;
-  text-transform: uppercase;
-  font-size: 0.8rem;
-  letter-spacing: 0.05em;
-}
-
-tr:nth-child(even) {
+.table-modern tbody tr:nth-child(even) {
   background: #f8f9fa;
 }
 
-tr:hover {
+.table-modern tbody tr:hover {
   background: #f1f3f5;
   transition: background 0.2s ease;
 }
@@ -95,37 +122,35 @@ tr:hover {
 }
 
 .btn-edit {
+  background: #4caf50;
+  color: white;
+  border: none;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
   cursor: pointer;
-  border: none;
-  background: #2196f3;
-  color: white;
   transition: all 0.2s ease;
 }
 
 .btn-edit:hover {
-  background: #1976d2;
+  background: #388e3c;
   transform: scale(1.05);
 }
 
 .btn-delete {
+  background: #f44336;
+  color: white;
+  border: none;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
   cursor: pointer;
-  border: none;
-  background: #f44336;
-  color: white;
   transition: all 0.2s ease;
 }
 
@@ -136,69 +161,59 @@ tr:hover {
 
 .no-data {
   text-align: center;
-  color: #666;
   padding: 1rem;
+  color: #666;
+  font-style: italic;
 }
 
-/* Modal Overlay */
+/* ===== MODAL ===== */
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  backdrop-filter: blur(2px);
 }
 
 .modal {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   width: 500px;
   max-width: 90%;
   overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   animation: modalAppear 0.3s ease-out;
   position: relative;
 }
 
 @keyframes modalAppear {
-  from { 
-    opacity: 0; 
-    transform: translateY(-20px) scale(0.95); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1); 
-  }
+  from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem;
-  border-bottom: 1px solid #eee;
   background: #f8f9fa;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #eee;
 }
 
 .modal-header h2 {
+  margin: 0;
   font-size: 1.2rem;
   color: #333;
-  margin: 0;
 }
 
 .modal-close {
   background: none;
   border: none;
-  cursor: pointer;
   font-size: 24px;
   color: #666;
-  padding: 0.5rem;
+  cursor: pointer;
   border-radius: 50%;
   transition: all 0.2s ease;
 }
@@ -208,17 +223,14 @@ tr:hover {
   transform: rotate(90deg);
 }
 
-.modal-body {
-  padding: 1.2rem;
-}
-
 .form-group {
   margin-bottom: 1rem;
 }
 
 .form-group label {
   font-size: 0.95rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
+  display: block;
   color: #333;
 }
 
@@ -229,11 +241,6 @@ tr:hover {
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 0.95rem;
-}
-
-.form-group textarea {
-  resize: vertical;
-  min-height: 80px;
 }
 
 .form-actions {
@@ -251,7 +258,6 @@ tr:hover {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
-  font-size: 0.95rem;
 }
 
 .btn-primario:hover {
@@ -265,29 +271,27 @@ tr:hover {
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.95rem;
 }
 
 .btn-secundario:hover {
   background: #555;
 }
 
-/* Responsive */
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-  .area-container {
-    margin-left: 60px;
-    padding: 1rem;
-  }
-
-  .area-header {
+  .config-header {
     flex-direction: column;
     gap: 1rem;
   }
 
-  .btn-primary {
-    width: 100%;
-    justify-content: center;
+  .table-modern th,
+  .table-modern td {
+    padding: 0.6rem 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .actions-cell {
+    gap: 0.3rem;
   }
 
   .modal {

@@ -1,37 +1,109 @@
-<div class="p-6 space-y-6">
-
-  <!-- 🔼 FORMULARIO PARA GUARDAR CARRERA -->
-  <form (ngSubmit)="guardarCarrera()" #carreraForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Carrera</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevaCarrera.Nombre" name="Nombre" required class="w-full p-2 border rounded">
-      </div>
-
-      <div>
-        <label class="block font-semibold">Área de Conocimiento ID:</label>
-        <input type="number" [(ngModel)]="nuevaCarrera.AreaConocimientoId" name="AreaConocimientoId" required class="w-full p-2 border rounded">
-      </div>
+<div class="config-container">
+  <!-- HEADER -->
+  <header class="config-header">
+    <div class="header-content">
+      <h1>Carreras</h1>
+      <p>Administra las carreras del sistema</p>
     </div>
+    <button class="btn-primary" (click)="editMode = true">
+      <i class="fas fa-plus"></i> Nueva Carrera
+    </button>
+  </header>
 
-    <div class="pt-4">
-      <button type="submit" [disabled]="carreraForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
+  <!-- MODAL FLOANTE -->
+  <div *ngIf="editMode" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>{{ carreraToEdit ? 'Editar Carrera' : 'Registrar Nueva Carrera' }}</h2>
+        <button class="modal-close" (click)="cancelEdit()">&times;</button>
+      </div>
+      <form (ngSubmit)="guardarCarrera()" #carreraForm="ngForm">
+        <div class="form-group">
+          <label for="nombre">Nombre *</label>
+          <input 
+            type="text" 
+            id="nombre" 
+            [(ngModel)]="nuevaCarrera.Nombre" 
+            name="nombre" 
+            required 
+            placeholder="Nombre de la carrera"
+          >
+        </div>
+        <div class="form-group">
+          <label for="descripcion">Descripción</label>
+          <textarea 
+            id="descripcion" 
+            [(ngModel)]="nuevaCarrera.Descripcion" 
+            name="descripcion" 
+            placeholder="Descripción de la carrera"
+            rows="3"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label for="areaId">Área de Conocimiento *</label>
+          <select 
+            id="areaId" 
+            [(ngModel)]="nuevaCarrera.AreaConocimientoId" 
+            name="areaId" 
+            required
+          >
+            <option value="">Seleccione un área</option>
+            <option *ngFor="let area of areasConocimiento" [value]="area.Id">
+              {{ area.nombre }}
+            </option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primario" [disabled]="carreraForm.invalid">
+            {{ carreraToEdit ? 'Actualizar' : 'Registrar' }}
+          </button>
+          <button type="button" class="btn-secundario" (click)="cancelEdit()">
+            Cancelar
+          </button>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 
-  <!-- 🔽 TABLA DE CARRERAS -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Carreras</h2>
+  <!-- MENSAJES DE ESTADO -->
+  <div *ngIf="errorMsg" class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMsg }}
+  </div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
+  <!-- TABLA DE CARRERAS -->
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead>
         <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Área</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let carrera of filteredCarreras">
+          <td>{{ carrera.Id }}</td>
+          <td>{{ carrera.Nombre }}</td>
+          <td>{{ getCarreraAreaNombre(carrera.AreaConocimientoId) }}</td>
+          <td>{{ carrera.Descripcion || '' }}</td>
+          <td class="actions-cell">
+            <button class="btn-edit" (click)="editCarrera(carrera)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-delete" (click)="deleteCarrera(carrera.Id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredCarreras.length === 0">
+          <td colspan="5" class="no-data">No hay carreras registradas</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,45 +1,63 @@
-<div class="p-6 space-y-6">
-
-  <!-- 🔼 FORMULARIO PARA GUARDAR ESTADO -->
-  <form (ngSubmit)="guardarEstado()" #estadoForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Estado</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoEstado.Nombre" name="nombre" required class="w-full p-2 border rounded">
-      </div>
+<div class="config-container">
+  <!-- Header -->
+  <header class="config-header">
+    <div class="header-content">
+      <h1>Estados</h1>
+      <p>Administra los estados de las solicitudes de beca</p>
     </div>
+    <button class="btn-primario" (click)="toggleForm()">
+      <i class="fas fa-plus"></i> {{ editMode ? 'Cancelar' : 'Nuevo Estado' }}
+    </button>
+  </header>
 
-    <div class="pt-4">
-      <button type="submit" [disabled]="estadoForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
+  <!-- Modal/Formulario -->
+  <div *ngIf="editMode" class="form-section">
+    <div class="form-container">
+      <h2>{{ editMode ? 'Editar Estado' : 'Registrar Nuevo Estado' }}</h2>
+      <form (ngSubmit)="guardarEstado()" #estadoForm="ngForm">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="nuevoEstado.Nombre" name="nombre" required placeholder="Nombre del estado">
+        </div>
+        <div class="form-group">
+          <label>Color *</label>
+          <input type="color" [(ngModel)]="nuevoEstado.Color" name="color" required>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primario" [disabled]="estadoForm.invalid">{{ editMode ? 'Actualizar' : 'Registrar' }}</button>
+          <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 
-  <!-- 🔽 TABLA DE ESTADOS -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Estados</h2>
+  <!-- Mensajes -->
+  <div *ngIf="errorMsg" class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</div>
+  <div *ngIf="successMsg" class="alert alert-success"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
-        </tr>
+  <!-- Tabla -->
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead>
+        <tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr>
       </thead>
       <tbody>
-        <tr *ngFor="let estado of estados" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ estado.Id }}</td>
-          <td class="py-2 px-4">{{ estado.Nombre }}</td>
+        <tr *ngFor="let estado of estados">
+          <td>{{ estado.Id }}</td>
+          <td>{{ estado.Nombre }}</td>
+          <td>
+            <span class="color-preview" [style.background-color]="estado.Color"></span>
+            {{ estado.Color }}
+          </td>
+          <td class="actions-cell">
+            <button class="btn-edit" (click)="editEstado(estado)"><i class="fas fa-edit"></i></button>
+            <button class="btn-delete" (click)="deleteEstado(estado.Id)"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+        <tr *ngIf="estados.length === 0">
+          <td colspan="4" class="no-data">No hay estados registrados</td>
         </tr>
       </tbody>
     </table>
-
-    <p *ngIf="estados.length === 0" class="text-gray-500 pt-4">No hay estados registrados.</p>
   </div>
 </div>

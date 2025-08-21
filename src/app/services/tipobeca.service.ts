@@ -1,50 +1,51 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { lastValueFrom, catchError } from 'rxjs';
-import { ErrorService } from './error.service'; // Ajusta la ruta si cambia
+import { Observable } from 'rxjs';
+
+// Interfaz TipoBeca
+export interface TipoBeca {
+  Id?: number | undefined; // Opcional, puede ser undefined
+  Nombre: string;
+  Descripcion?: string;
+  Monto: number | undefined;
+  FechaRegistro?: string | null;
+  FechaModificacion?: string | null;
+  EstadoId: number | undefined;
+  Estadonombre?: string;
+}
+
+// Interfaz para estados
+export interface EstadoLookup {
+  Id: number;
+  Nombre: string;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class TipoBecaService {
-  private apiUrl = 'http://localhost:3000/api-beca/TipoBeca';
-  private apipostUrl = 'http://localhost:3000/api-beca/TipoBeca/add';
+  private apiUrl = 'http://localhost:3000/api-beca/tipobeca';
+  private apiUrlEstado = 'http://localhost:3000/api-beca/estado';
 
-  constructor(
-    private http: HttpClient,
-    private error: ErrorService
-  ) { }
+  constructor(private http: HttpClient) {}
 
-  createTipoBeca(data: any): Promise<any> {
-    const urlp = `${this.apipostUrl}`;
-    return lastValueFrom(
-      this.http.post<any>(urlp, data).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  getAllTipoBecas(): Observable<TipoBeca[]> {
+    return this.http.get<TipoBeca[]>(this.apiUrl);
   }
 
-
-  async getAllTipoBecas(): Promise<any[]> {
-    return await lastValueFrom(
-      this.http.get<any[]>(this.apiUrl).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  createTipoBeca(data: Omit<TipoBeca, 'Id' | 'Estadonombre'>): Observable<TipoBeca> {
+    return this.http.post<TipoBeca>(`${this.apiUrl}/add`, data);
   }
 
-  async getTipoBecaById(id: number): Promise<any> {
-    return await lastValueFrom(
-      this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  updateTipoBeca(id: number, data: Omit<TipoBeca, 'Id' | 'Estadonombre'>): Observable<TipoBeca> {
+    return this.http.put<TipoBeca>(`${this.apiUrl}/${id}`, data);
   }
 
+  deleteTipoBeca(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
 
-
-
-
-
-
+  getAllEstadosLookup(): Observable<EstadoLookup[]> {
+    return this.http.get<EstadoLookup[]>(this.apiUrlEstado);
+  }
 }

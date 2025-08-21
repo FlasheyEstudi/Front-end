@@ -1,0 +1,57 @@
+<div class="config-main-container">
+  <!-- Header -->
+  <header class="config-header">
+    <div class="header-content">
+      <h1>Configuración del Sistema</h1>
+      <p>Administra los componentes principales del sistema</p>
+    </div>
+  </header>
+
+  <!-- Tabs Navigation -->
+  <div class="config-tabs">
+    <button
+      class="tab-button"
+      [class.active]="activeSection === 'areas'"
+      (click)="setActiveSection('areas')"
+    >
+      Áreas de Conocimiento
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeSection === 'carreras'"
+      (click)="setActiveSection('carreras')"
+    >
+      Carreras
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeSection === 'requisitos'"
+      (click)="setActiveSection('requisitos')"
+    >
+      Requisitos
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeSection === 'periodos'"
+      (click)="setActiveSection('periodos')"
+    >
+      Períodos Académicos
+    </button>
+    <button
+      class="tab-button"
+      [class.active]="activeSection === 'estados'"
+      (click)="setActiveSection('estados')"
+    >
+      Estados
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="config-content">
+    <app-area-conocimiento *ngIf="activeSection === 'areas'"></app-area-conocimiento>
+    <app-carrera *ngIf="activeSection === 'carreras'"></app-carrera>
+    <app-requisito *ngIf="activeSection === 'requisitos'"></app-requisito>
+    <app-periodo-academico *ngIf="activeSection === 'periodos'"></app-periodo-academico>
+    <app-estado *ngIf="activeSection === 'estados'"></app-estado>
+  </div>
+</div>

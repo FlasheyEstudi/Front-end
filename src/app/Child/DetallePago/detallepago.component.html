@@ -1,71 +1,80 @@
-<div class="p-6 space-y-6">
+<div class="container">
+  <h2>Gestión de Detalles de Pago</h2>
 
-  <!-- 🔼 FORMULARIO PARA GUARDAR DETALLE DE PAGO -->
-  <form (ngSubmit)="guardarDetallePago()" #detallePagoForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Detalle de Pago</h2>
+  <div class="messages">
+    <div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+    <div *ngIf="successMsg" class="success">{{ successMsg }}</div>
+  </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <div>
-        <label class="block font-semibold">Solicitud Beca ID:</label>
-        <input type="number" [(ngModel)]="nuevoDetallePago.SolicitudBecaId" name="solicitudBecaId" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Tipo Pago ID:</label>
-        <input type="number" [(ngModel)]="nuevoDetallePago.TipoPagold" name="tipoPagoId" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Monto:</label>
-        <input type="number" [(ngModel)]="nuevoDetallePago.Monto" name="monto" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Referencia:</label>
-        <input type="text" [(ngModel)]="nuevoDetallePago.Referencia" name="referencia" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Estado ID:</label>
-        <input type="number" [(ngModel)]="nuevoDetallePago.Estadold" name="estadoid" required class="w-full p-2 border rounded">
-      </div>
-    </div>
-    
-    <div class="pt-4">
-      <button type="submit" [disabled]="detallePagoForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
-    </div>
-  </form>
+  <div class="search-box">
+    <input type="text" placeholder="Buscar..." [(ngModel)]="searchTerm" (input)="onSearch()"/>
+  </div>
 
-  <!-- 🔽 TABLA DE DETALLES DE PAGO -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Detalles de Pago</h2>
+  <div *ngIf="loading" class="loading">Cargando...</div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Solicitud Beca ID</th>
-          <th class="py-2 px-4 text-left">Tipo Pago ID</th>
-          <th class="py-2 px-4 text-left">Monto</th>
-          <th class="py-2 px-4 text-left">Fecha Pago</th>
-          <th class="py-2 px-4 text-left">Referencia</th>
-          <th class="py-2 px-4 text-left">Estado ID</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let detallePago of detallesDePago" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ detallePago.Id }}</td>
-          <td class="py-2 px-4">{{ detallePago.SolicitudBecaId }}</td>
-          <td class="py-2 px-4">{{ detallePago.TipoPagold }}</td>
-          <td class="py-2 px-4">{{ detallePago.Monto | currency:'USD':'symbol':'1.2-2' }}</td>
-          <td class="py-2 px-4">{{ detallePago.FechaPago | date:'medium' }}</td>
-          <td class="py-2 px-4">{{ detallePago.Referencia }}</td>
-          <td class="py-2 px-4">{{ detallePago.Estadold }}</td>
-        </tr>
-      </tbody>
-    </table>
+  <table *ngIf="!loading" class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Solicitud Beca</th>
+        <th>Tipo Pago</th>
+        <th>Monto</th>
+        <th>Fecha Pago</th>
+        <th>Referencia</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let detalle of filteredDetallesDePago">
+        <td>{{detalle.Id}}</td>
+        <td>{{getSolicitudBecaReferencia(detalle.SolicitudBecaId)}}</td>
+        <td>{{getTipoPagoNombre(detalle.TipoPagoId)}}</td>
+        <td>{{detalle.Monto | number:'1.2-2'}}</td>
+        <td>{{detalle.FechaPago | date:'yyyy-MM-dd'}}</td>
+        <td>{{detalle.Referencia}}</td>
+        <td>{{getEstadoNombre(detalle.EstadoId)}}</td>
+        <td>
+          <button (click)="editDetallePago(detalle)">Editar</button>
+          <button (click)="deleteDetallePago(detalle.Id)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
-    <p *ngIf="detallesDePago.length === 0" class="text-gray-500 pt-4">No hay detalles de pago registrados.</p>
+  <hr/>
+
+  <div class="form-container">
+    <h3>{{editMode ? 'Editar Detalle' : 'Nuevo Detalle'}}</h3>
+    <form (ngSubmit)="guardarDetallePago()">
+      <label>Solicitud Beca:</label>
+      <select [(ngModel)]="nuevoDetallePago.SolicitudBecaId" name="solicitud">
+        <option *ngFor="let s of solicitudesBecaLookup" [value]="s.Id">{{s.Referencia}}</option>
+      </select>
+
+      <label>Tipo Pago:</label>
+      <select [(ngModel)]="nuevoDetallePago.TipoPagoId" name="tipoPago">
+        <option *ngFor="let t of tiposPagoLookup" [value]="t.Id">{{t.Nombre}}</option>
+      </select>
+
+      <label>Monto:</label>
+      <input type="number" [(ngModel)]="nuevoDetallePago.Monto" name="monto"/>
+
+      <label>Fecha Pago:</label>
+      <input type="date" [(ngModel)]="nuevoDetallePago.FechaPago" name="fechaPago"/>
+
+      <label>Referencia:</label>
+      <input type="text" [(ngModel)]="nuevoDetallePago.Referencia" name="referencia"/>
+
+      <label>Estado:</label>
+      <select [(ngModel)]="nuevoDetallePago.EstadoId" name="estado">
+        <option *ngFor="let e of estadosLookup" [value]="e.Id">{{e.Nombre}}</option>
+      </select>
+
+      <div class="form-buttons">
+        <button type="submit">{{editMode ? 'Actualizar' : 'Agregar'}}</button>
+        <button type="button" (click)="cancelEdit()">Cancelar</button>
+      </div>
+    </form>
   </div>
 </div>

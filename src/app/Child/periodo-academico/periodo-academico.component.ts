@@ -1,122 +1,191 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PeriodoAcademicoService } from '../../services/periodoacademico.service'; // Importa el nuevo servicio
+import { forkJoin } from 'rxjs';
+import { PeriodoAcademicoService, PeriodoAcademico } from '../../services/periodoacademico.service';
 
-// Define la interfaz para PeriodoAcademico para mejor tipado
-interface PeriodoAcademico {
-  Id?: number; // Opcional, ya que puede ser generado por el backend
+interface EstadoLookup {
+  Id: number;
   Nombre: string;
-  AnioAcademico: string;
-  FechaInicio: string | null; // Usar string para el input type="date"
-  FechaFin: string | null; // Usar string para el input type="date"
-  FechaRegistro: string | null; // Usar string para el input type="date"
-  FechaModificacion: string | null; // Usar string para el input type="date"
-  EstadoId: number | null;
 }
 
 @Component({
-  selector: 'app-periodo-academico', // Selector actualizado
+  selector: 'app-periodo-academico',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
-  templateUrl: './periodo-academico.component.html', // Plantilla HTML actualizada
-  styleUrl: './periodo-academico.component.css' // Archivo CSS actualizado
+  imports: [CommonModule, FormsModule],
+  templateUrl: './periodo-academico.component.html',
+  styleUrls: ['./periodo-academico.component.css']
 })
 export class PeriodoAcademicoComponent implements OnInit {
-
-  periodosAcademicos: PeriodoAcademico[] = []; // Array para almacenar los periodos académicos
-  nuevoPeriodoAcademico: PeriodoAcademico = { // Objeto para el formulario de nuevo periodo
+  periodosAcademicos: PeriodoAcademico[] = [];
+  filteredPeriodosAcademicos: PeriodoAcademico[] = [];
+  estadosLookup: EstadoLookup[] = [];
+  nuevoPeriodoAcademico: PeriodoAcademico = {
     Nombre: '',
     AnioAcademico: '',
-    FechaInicio: new Date().toISOString().substring(0, 10), // Inicializa con la fecha actual
+    FechaInicio: null,
     FechaFin: null,
-    FechaRegistro: new Date().toISOString().substring(0, 10), // Inicializa con la fecha actual
+    FechaRegistro: null,
     FechaModificacion: null,
-    EstadoId: null
+    EstadoId: null,
+    Estadonombre: ''
   };
-  errorMsg: string = ''; // Mensaje de error
+  errorMsg = '';
+  successMsg = '';
+  searchTerm = '';
+  editMode = false;
+  periodoAcademicoToEdit: PeriodoAcademico | null = null;
 
-  // Inyecta el servicio PeriodoAcademicoService
-  constructor(private periodoAcademicoService: PeriodoAcademicoService) { }
+  constructor(private periodoAcademicoService: PeriodoAcademicoService) {}
 
-  // Se ejecuta al inicializar el componente
   ngOnInit(): void {
-    this.loadPeriodosAcademicos();
+    this.loadAllData();
   }
 
-  /**
-   * Carga todos los periodos académicos desde el servicio.
-   */
-  async loadPeriodosAcademicos(): Promise<void> {
-    this.errorMsg = '';
-    try {
-      this.periodosAcademicos = await this.periodoAcademicoService.getAllPeriodoAcademicos();
-      // console.log('Datos Periodos Academicos', JSON.stringify(this.periodosAcademicos));
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error desconocido al cargar periodos académicos.';
-      console.error('❌ ERROR AL CARGAR PERIODOS ACADÉMICOS:', error);
+  loadAllData() {
+    this.clearMessages();
+    forkJoin({
+      periodosAcademicos: this.periodoAcademicoService.getAllPeriodoAcademicos(),
+      estados: this.periodoAcademicoService.getAllEstadosLookup()
+    }).subscribe({
+      next: ({ periodosAcademicos, estados }) => {
+        this.estadosLookup = estados;
+        this.periodosAcademicos = periodosAcademicos.map(pa => ({
+          ...pa,
+          Estadonombre: estados.find(s => s.Id === pa.EstadoId)?.Nombre || 'Desconocido'
+        }));
+        this.onSearch();
+      },
+      error: (err) => {
+        console.error('Error cargando datos iniciales:', err);
+        this.errorMsg = 'Error cargando datos iniciales (periodos académicos o estados).';
+      }
+    });
+  }
+
+  guardarPeriodoAcademico() {
+    this.clearMessages();
+
+    if (!this.nuevoPeriodoAcademico.Nombre?.trim() || 
+        !this.nuevoPeriodoAcademico.AnioAcademico?.trim() ||
+        !this.nuevoPeriodoAcademico.FechaInicio ||
+        !this.nuevoPeriodoAcademico.FechaFin ||
+        this.nuevoPeriodoAcademico.EstadoId === null) {
+      this.errorMsg = 'Debe llenar todos los campos obligatorios.';
+      return;
+    }
+
+    const fechaInicio = new Date(this.nuevoPeriodoAcademico.FechaInicio);
+    const fechaFin = new Date(this.nuevoPeriodoAcademico.FechaFin);
+    if (fechaInicio > fechaFin) {
+      this.errorMsg = 'La Fecha de Inicio no puede ser posterior a la Fecha de Fin.';
+      return;
+    }
+
+    const dataToSend: PeriodoAcademico = {
+      Nombre: this.nuevoPeriodoAcademico.Nombre,
+      AnioAcademico: this.nuevoPeriodoAcademico.AnioAcademico,
+      FechaInicio: this.nuevoPeriodoAcademico.FechaInicio,
+      FechaFin: this.nuevoPeriodoAcademico.FechaFin,
+      EstadoId: this.nuevoPeriodoAcademico.EstadoId,
+      FechaRegistro: this.nuevoPeriodoAcademico.FechaRegistro || new Date().toISOString().substring(0, 10),
+      FechaModificacion: this.editMode ? new Date().toISOString().substring(0, 10) : null,
+      Estadonombre: this.estadosLookup.find(s => s.Id === this.nuevoPeriodoAcademico.EstadoId)?.Nombre || ''
+    };
+
+    if (this.editMode && this.periodoAcademicoToEdit?.Id) {
+      dataToSend.Id = this.periodoAcademicoToEdit.Id;
+      this.periodoAcademicoService.updatePeriodoAcademico(this.periodoAcademicoToEdit.Id, dataToSend).subscribe({
+        next: () => {
+          this.successMsg = 'Periodo Académico actualizado correctamente.';
+          this.resetForm();
+          this.loadAllData();
+        },
+        error: (err) => {
+          console.error('Error al actualizar:', err);
+          this.errorMsg = err.error?.detalle || 'Error al actualizar.';
+        }
+      });
+    } else {
+      this.periodoAcademicoService.createPeriodoAcademico(dataToSend).subscribe({
+        next: () => {
+          this.successMsg = 'Periodo Académico agregado correctamente.';
+          this.resetForm();
+          this.loadAllData();
+        },
+        error: (err) => {
+          console.error('Error al agregar:', err);
+          this.errorMsg = err.error?.detalle || 'Error al agregar.';
+        }
+      });
     }
   }
 
-  /**
-   * Guarda un nuevo periodo académico.
-   */
-  async guardarPeriodoAcademico(): Promise<void> {
-    // 🔍 Mostrar los datos antes de enviar
-    console.log('INTENTANDO GUARDAR - Original:', this.nuevoPeriodoAcademico);
-
-    try {
-      // Prepara los datos para enviar al backend, asegurando los tipos correctos
-      const dataEnviar: PeriodoAcademico = {
-        Id: 0, // El ID puede ser 0 o null si el backend lo genera automáticamente
-        Nombre: this.nuevoPeriodoAcademico.Nombre,
-        AnioAcademico: this.nuevoPeriodoAcademico.AnioAcademico,
-        FechaInicio: this.nuevoPeriodoAcademico.FechaInicio,
-        FechaFin: this.nuevoPeriodoAcademico.FechaFin,
-        FechaRegistro: this.nuevoPeriodoAcademico.FechaRegistro,
-        FechaModificacion: this.nuevoPeriodoAcademico.FechaModificacion,
-        EstadoId: Number(this.nuevoPeriodoAcademico.EstadoId)
-      };
-
-      // 🔍 Mostrar los datos transformados
-      console.log('DATOS A ENVIAR AL BACKEND:', dataEnviar);
-
-      // Llama al servicio para crear el periodo académico
-      const guardado = await this.periodoAcademicoService.createPeriodoAcademico(dataEnviar);
-
-      // 🔍 Confirmar respuesta del backend
-      console.log('RESPUESTA DEL BACKEND:', guardado);
-
-      this.limpiarFormulario(); // Limpia el formulario después de guardar
-      this.loadPeriodosAcademicos(); // Recarga la lista de periodos académicos para mostrar el nuevo
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error al guardar periodo académico.';
-      console.error('❌ ERROR AL GUARDAR PERIODO ACADÉMICO:', error);
-    }
+  editPeriodoAcademico(pa: PeriodoAcademico) {
+    this.clearMessages();
+    this.editMode = true;
+    this.periodoAcademicoToEdit = { ...pa };
+    this.nuevoPeriodoAcademico = {
+      ...pa,
+      FechaInicio: pa.FechaInicio ? new Date(pa.FechaInicio).toISOString().substring(0, 10) : null,
+      FechaFin: pa.FechaFin ? new Date(pa.FechaFin).toISOString().substring(0, 10) : null,
+      FechaRegistro: pa.FechaRegistro ? new Date(pa.FechaRegistro).toISOString().substring(0, 10) : null,
+      FechaModificacion: pa.FechaModificacion ? new Date(pa.FechaModificacion).toISOString().substring(0, 10) : null
+    };
   }
 
-  /**
-   * Restablece el formulario a sus valores iniciales.
-   */
-  limpiarFormulario(): void {
+  deletePeriodoAcademico(id?: number) {
+    if (!id) { this.errorMsg = 'ID inválido.'; return; }
+    if (!confirm('¿Está seguro que desea eliminar este período?')) return;
+
+    this.clearMessages();
+    this.periodoAcademicoService.deletePeriodoAcademico(id).subscribe({
+      next: () => { this.successMsg = 'Periodo eliminado.'; this.loadAllData(); },
+      error: (err) => { console.error(err); this.errorMsg = err.error?.detalle || 'Error eliminando período.'; }
+    });
+  }
+
+  cancelEdit() { this.resetForm(); }
+
+  resetForm() {
     this.nuevoPeriodoAcademico = {
       Nombre: '',
       AnioAcademico: '',
-      FechaInicio: new Date().toISOString().substring(0, 10), // Restablece a la fecha actual
+      FechaInicio: null,
       FechaFin: null,
-      FechaRegistro: new Date().toISOString().substring(0, 10), // Restablece a la fecha actual
+      FechaRegistro: null,
       FechaModificacion: null,
-      EstadoId: null
+      EstadoId: null,
+      Estadonombre: ''
     };
-    this.errorMsg = '';
+    this.editMode = false;
+    this.periodoAcademicoToEdit = null;
+    this.clearMessages();
   }
 
-  /**
-   * Limpia el array de periodos académicos.
-   */
-  limpiarPeriodosAcademicos(): void {
-    this.periodosAcademicos = [];
-    this.errorMsg = '';
+  onSearch() {
+    if (!this.searchTerm) { this.filteredPeriodosAcademicos = [...this.periodosAcademicos]; return; }
+    const term = this.searchTerm.toLowerCase();
+    this.filteredPeriodosAcademicos = this.periodosAcademicos.filter(pa =>
+      (pa.Nombre ?? '').toLowerCase().includes(term) ||
+      (pa.AnioAcademico ?? '').toLowerCase().includes(term) ||
+      (pa.Estadonombre ?? '').toLowerCase().includes(term) ||
+      pa.Id?.toString().includes(term)
+    );
+  }
+
+  clearMessages() { this.errorMsg = ''; this.successMsg = ''; }
+
+  toggleForm() { this.editMode = !this.editMode; if (!this.editMode) this.resetForm(); }
+
+  formatDate(date: string | null): string {
+    if (!date) return '';
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? '' : d.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscKeydown(event: KeyboardEvent) {
+    if (this.editMode) this.cancelEdit();
   }
 }

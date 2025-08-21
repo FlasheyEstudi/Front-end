@@ -1,29 +1,23 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom, catchError } from 'rxjs';
-import { ErrorService } from './error.service'; // Ajusta la ruta si cambia
+import { ErrorService } from './error.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class EstudianteService {
-  private apiUrl = 'http://localhost:3000/api-beca/estudiantes';
-  private apipostUrl = 'http://localhost:3000/api-beca/estudiantes/add';
+  private apiUrl = 'http://localhost:3000/api-beca/estudiante';
 
-  constructor(
-    private http: HttpClient,
-    private error: ErrorService
-  ) { }
+  constructor(private http: HttpClient, private error: ErrorService) {}
 
   createEstudiante(data: any): Promise<any> {
-    const urlp = `${this.apipostUrl}`;
     return lastValueFrom(
-      this.http.post<any>(urlp, data).pipe(
+      this.http.post<any>(this.apiUrl, data).pipe(
         catchError(this.error.handleError)
       )
     );
   }
-
 
   async getAllEstudiantes(): Promise<any[]> {
     return await lastValueFrom(
@@ -41,10 +35,11 @@ export class EstudianteService {
     );
   }
 
-
-
-
-
-
-
+  async eliminarEstudiante(id: number): Promise<any> {
+    return await lastValueFrom(
+      this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+        catchError(this.error.handleError)
+      )
+    );
+  }
 }

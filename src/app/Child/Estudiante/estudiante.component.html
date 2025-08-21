@@ -1,80 +1,223 @@
-<div class="p-6 space-y-6">
+<div class="estudiantes-contenedor">
+  <!-- Mensajes de error -->
+  <div *ngIf="error" class="form-group error-message">
+    <span class="error-icon">⚠️</span>
+    {{ error }}
+  </div>
 
-  <!-- 🔼 FORMULARIO PARA GUARDAR ESTUDIANTE -->
-  <form (ngSubmit)="guardarEstudiante()" #estudianteForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Estudiante</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoEstudiante.Nombre" name="Nombre" required class="w-full p-2 border rounded">
+  <!-- Modal de registro -->
+  <div *ngIf="showModal" class="modal-overlay" (click)="cerrarModalRegistro()">
+    <div class="modal-registro" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Registrar Nuevo Estudiante</h3>
+        <button class="close-button" (click)="cerrarModalRegistro()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
+      <div class="modal-body">
+        <form (ngSubmit)="onSubmitNewStudent()" #studentForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre *</label>
+              <input type="text" id="nombre" [(ngModel)]="nuevoEstudiante.Nombre" name="Nombre" required>
+            </div>
+            <div class="form-group">
+              <label for="apellido">Apellido *</label>
+              <input type="text" id="apellido" [(ngModel)]="nuevoEstudiante.Apellido" name="Apellido" required>
+            </div>
+          </div>
 
-      <div>
-        <label class="block font-semibold">Apellido:</label>
-        <input type="text" [(ngModel)]="nuevoEstudiante.Apellido" name="Apellido" required class="w-full p-2 border rounded">
-      </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="edad">Edad *</label>
+              <input type="number" id="edad" [(ngModel)]="nuevoEstudiante.Edad" name="Edad" required min="1">
+            </div>
+            <div class="form-group">
+              <label for="correo">Correo Electrónico *</label>
+              <input type="email" id="correo" [(ngModel)]="nuevoEstudiante.Correo" name="Correo" required>
+            </div>
+          </div>
 
-      <div>
-        <label class="block font-semibold">Edad:</label>
-        <input type="number" [(ngModel)]="nuevoEstudiante.Edad" name="Edad" required class="w-full p-2 border rounded">
-      </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="estado">Estado</label>
+              <select id="estado" [(ngModel)]="nuevoEstudiante.EstadoId" name="EstadoId">
+                <option [ngValue]="undefined">Seleccione estado</option>
+                <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">
+                  {{ estado.Nombre }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="carrera">Carrera</label>
+              <select id="carrera" [(ngModel)]="nuevoEstudiante.CarreraId" name="CarreraId">
+                <option [ngValue]="undefined">Seleccione carrera</option>
+                <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">
+                  {{ carrera.Nombre }}
+                </option>
+              </select>
+            </div>
+          </div>
 
-      <div>
-        <label class="block font-semibold">Correo:</label>
-        <input type="email" [(ngModel)]="nuevoEstudiante.Correo" name="Correo" required class="w-full p-2 border rounded">
-      </div>
-
-      <div>
-        <label class="block font-semibold">EstadoId:</label>
-        <input type="number" [(ngModel)]="nuevoEstudiante.EstadoId" name="EstadoId" required class="w-full p-2 border rounded">
-      </div>
-
-      <div>
-        <label class="block font-semibold">CarreraId:</label>
-        <input type="number" [(ngModel)]="nuevoEstudiante.CarreraId" name="CarreraId" required class="w-full p-2 border rounded">
+          <div class="form-actions">
+            <button type="button" class="btn-secundario" (click)="cerrarModalRegistro()">Cancelar</button>
+            <button type="submit" class="btn-primario" [disabled]="studentForm.invalid || loading">
+              <span *ngIf="!loading">Registrar Estudiante</span>
+              <span *ngIf="loading" class="loading-spinner"></span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
+  </div>
 
-    <div class="pt-4">
-      <button type="submit" [disabled]="estudianteForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
+  <!-- Modal de Credenciales -->
+  <div *ngIf="showCredentialsModal" class="modal-overlay" (click)="closeCredentialsModal()">
+    <div class="modal credentials-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Estudiante Registrado Exitosamente</h3>
+        <button class="close-button" (click)="closeCredentialsModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Se han generado las siguientes credenciales para el nuevo estudiante:</p>
+        <div class="credentials-info">
+          <div class="credential-item" *ngIf="credencialesEstudiante">
+            <span class="credential-label">Usuario:</span>
+            <div class="credential-value-container">
+              <span class="credential-value">{{ credencialesEstudiante.username }}</span>
+              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.username, 'Usuario')">📋</button>
+            </div>
+          </div>
+          <div class="credential-item" *ngIf="credencialesEstudiante">
+            <span class="credential-label">Email:</span>
+            <div class="credential-value-container">
+              <span class="credential-value">{{ credencialesEstudiante.correo }}</span>
+              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.correo, 'Email')">📋</button>
+            </div>
+          </div>
+          <div class="credential-item" *ngIf="credencialesEstudiante">
+            <span class="credential-label">Contraseña:</span>
+            <div class="credential-value-container">
+              <span class="credential-value">{{ credencialesEstudiante.password }}</span>
+              <button class="copy-btn" (click)="copyToClipboard(credencialesEstudiante.password, 'Contraseña')">📋</button>
+            </div>
+          </div>
+        </div>
+        <div class="notification">
+          <span>⚠️ Guarde estas credenciales en un lugar seguro. La contraseña no se podrá recuperar posteriormente.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primario" (click)="closeCredentialsModal()">Aceptar</button>
+      </div>
     </div>
-  </form>
+  </div>
 
-  <!-- 🔽 TABLA DE ESTUDIANTES -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Estudiantes</h2>
+  <!-- Overlay de carga -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner"></div>
+  </div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
-          <th class="py-2 px-4 text-left">Apellido</th>
-          <th class="py-2 px-4 text-left">Edad</th>
-          <th class="py-2 px-4 text-left">Correo</th>
-          <th class="py-2 px-4 text-left">EstadoId</th>
-          <th class="py-2 px-4 text-left">CarreraId</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let est of estudiantes" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ est.Id }}</td>
-          <td class="py-2 px-4">{{ est.Nombre }}</td>
-          <td class="py-2 px-4">{{ est.Apellido }}</td>
-          <td class="py-2 px-4">{{ est.Edad }}</td>
-          <td class="py-2 px-4">{{ est.Correo }}</td>
-          <td class="py-2 px-4">{{ est.EstadoId }}</td>
-          <td class="py-2 px-4">{{ est.CarreraId }}</td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Header -->
+  <div class="page-header">
+    <h1>Gestión de Estudiantes</h1>
+    <p>Administra los estudiantes del sistema de becas</p>
+  </div>
 
-    <p *ngIf="estudiantes.length === 0" class="text-gray-500 pt-4">No hay estudiantes registrados.</p>
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">👥</div>
+      <div class="kpi-content">
+        <h2>{{ totalEstudiantes }}</h2>
+        <p>Total Estudiantes</p>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-content">
+        <h2>{{ estudiantesActivos }}</h2>
+        <p>Estudiantes Activos</p>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🎓</div>
+      <div class="kpi-content">
+        <h2>{{ carrerasDisponibles.length }}</h2>
+        <p>Carreras Disponibles</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de control -->
+  <div class="control-panel">
+    <div class="boton-nuevo">
+      <button class="btn-nuevo" (click)="abrirModalRegistro()">➕ Nuevo Estudiante</button>
+    </div>
+    <div class="search-filters">
+      <input type="text" placeholder="Buscar estudiantes..." [(ngModel)]="searchTerm" (input)="filtrarEstudiantes()">
+      <select [(ngModel)]="filtroEstado" (change)="filtrarEstudiantes()">
+        <option value="">Todos los estados</option>
+        <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">{{ estado.Nombre }}</option>
+      </select>
+      <select [(ngModel)]="filtroCarrera" (change)="filtrarEstudiantes()">
+        <option value="">Todas las carreras</option>
+        <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">{{ carrera.Nombre }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tabla de estudiantes -->
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="table-modern">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Edad</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Carrera</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let estudiante of filteredEstudiantes">
+            <td>{{ estudiante.Nombre }}</td>
+            <td>{{ estudiante.Apellido }}</td>
+            <td>{{ estudiante.Edad }} años</td>
+            <td>{{ estudiante.Correo }}</td>
+            <td>
+              <span class="status-badge" [class.active]="estudiante.EstadoId === 1">
+                {{ getEstadoNombre(estudiante.EstadoId) }}
+              </span>
+            </td>
+            <td>{{ getCarreraNombre(estudiante.CarreraId) }}</td>
+            <td>
+              <button class="btn-action delete" (click)="deleteEstudiante(estudiante.Id)" [disabled]="loading">🗑️</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredEstudiantes.length === 0">
+            <td colspan="7" class="no-results">
+              No se encontraron estudiantes
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div *ngIf="showToast" class="toast-container">
+    <div class="toast {{ toastType }}">
+      {{ toastMessage }}
+    </div>
   </div>
 </div>

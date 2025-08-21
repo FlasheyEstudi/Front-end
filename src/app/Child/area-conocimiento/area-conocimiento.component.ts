@@ -1,101 +1,116 @@
+// area-conocimiento.component.ts
 import { Component, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { AreaConocimientoService } from '../../services/areaconocimiento.service'; // Ajusta la ruta según sea necesario
+import { AreaConocimientoService, AreaConocimiento } from '../../services/areaconocimiento.service';
 
 @Component({
-  selector: 'app-area-conocimiento', // Selector para el componente
+  selector: 'app-area-conocimiento',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
-  templateUrl: './area-conocimiento.component.html', // Archivo de plantilla HTML
-  styleUrl: './area-conocimiento.component.css' // Archivo de estilos CSS
+  imports: [CommonModule, FormsModule],
+  templateUrl: './area-conocimiento.component.html',
+  styleUrls: ['./area-conocimiento.component.css']
 })
 export class AreaConocimientoComponent implements OnInit {
+  areasConocimiento: AreaConocimiento[] = [];
+  nuevaAreaConocimiento: AreaConocimiento = { nombre: '', descripcion: '' };
+  editMode: boolean = false;
+  areaToEdit: AreaConocimiento | null = null;
+  errorMsg: string = '';
+  successMsg: string = '';
+  showModal: boolean = false; // 👈 ahora controlamos el modal
 
-  areasConocimiento: any[] = []; // Array para almacenar las áreas de conocimiento
-  nuevaAreaConocimiento = { // Objeto para una nueva área de conocimiento
-    nombre: '' // Corresponde a la columna 'nombre'
-  };
-  errorMsg: string = ''; // Mensaje para mostrar errores
-
-  constructor(private areaConocimientoService: AreaConocimientoService) {
-    // Constructor, la carga de datos se realiza en ngOnInit
-  }
+  constructor(private areaService: AreaConocimientoService) {}
 
   ngOnInit(): void {
-    this.loadAreasConocimiento(); // Carga los datos cuando el componente se inicializa
+    this.loadAreas();
   }
 
-  /**
-   * Carga todas las áreas de conocimiento desde el servicio.
-   */
-  async loadAreasConocimiento() {
-    this.errorMsg = ''; // Limpia cualquier mensaje de error previo
-    try {
-      this.areasConocimiento = await this.areaConocimientoService.getAllAreasConocimiento();
-      // console.log('Datos Áreas de Conocimiento', JSON.stringify(this.areasConocimiento)); // Descomentar para depuración
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error desconocido al cargar áreas de conocimiento.';
-      console.error('❌ ERROR AL CARGAR ÁREAS DE CONOCIMIENTO:', error);
+  loadAreas() {
+    this.areaService.getAll().subscribe({
+      next: data => this.areasConocimiento = data,
+      error: err => {
+        console.error('Error cargando áreas:', err);
+        this.errorMsg = 'No se pudieron cargar las áreas de conocimiento.';
+      }
+    });
+  }
+
+  openModal(edit: boolean = false, area?: AreaConocimiento) {
+    this.editMode = edit;
+    this.showModal = true;
+    if (edit && area) {
+      this.areaToEdit = area;
+      this.nuevaAreaConocimiento = { ...area, descripcion: area.descripcion || '' };
+    } else {
+      this.resetForm();
     }
   }
 
-  /**
-   * Recarga la lista de áreas de conocimiento.
-   */
-  async recargarAreasConocimiento() {
-    this.errorMsg = ''; // Limpia cualquier mensaje de error previo
-    try {
-      this.areasConocimiento = await this.areaConocimientoService.getAllAreasConocimiento();
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error al recargar áreas de conocimiento.';
-      console.error('❌ ERROR AL RECARGAR ÁREAS DE CONOCIMIENTO:', error);
+  closeModal() {
+    this.showModal = false;
+    this.resetForm();
+  }
+
+  guardarAreaConocimiento() {
+    if (!this.nuevaAreaConocimiento.nombre?.trim()) {
+      this.errorMsg = 'El nombre es obligatorio.';
+      return;
     }
-  }
 
-  /**
-   * Guarda una nueva área de conocimiento usando el servicio.
-   */
-  async guardarAreaConocimiento() {
-    console.log('INTENTANDO GUARDAR - Original:', this.nuevaAreaConocimiento);
-
-    try {
-      // Prepara los datos para enviar al backend, alineándolos con la tabla Beca.AreaConocimiento
-      const dataEnviar = {
-        Id: 0, // Id es típicamente auto-generado por el backend
-        nombre: this.nuevaAreaConocimiento.nombre,
-      };
-
-      console.log('DATOS A ENVIAR AL BACKEND:', dataEnviar);
-
-      const guardado = await this.areaConocimientoService.createAreaConocimiento(dataEnviar);
-
-      console.log('RESPUESTA DEL BACKEND:', guardado);
-
-      this.limpiarFormulario(); // Limpia el formulario después de guardar exitosamente
-      this.recargarAreasConocimiento(); // Recarga la lista para mostrar la nueva área de conocimiento
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error al guardar área de conocimiento.';
-      console.error('❌ ERROR AL GUARDAR ÁREA DE CONOCIMIENTO:', error);
-    }
-  }
-
-  /**
-   * Limpia la lista de áreas de conocimiento mostradas.
-   */
-  limpiarAreasConocimiento() {
-    this.areasConocimiento = []; // Vacía el array
-    this.errorMsg = ''; // Limpia el mensaje de error
-  }
-
-  /**
-   * Restablece los campos del formulario para una nueva área de conocimiento.
-   */
-  limpiarFormulario() {
-    this.nuevaAreaConocimiento = { // Restablece el objeto
-      nombre: ''
+    const areaData: AreaConocimiento = {
+      nombre: this.nuevaAreaConocimiento.nombre,
+      descripcion: this.nuevaAreaConocimiento.descripcion || ''
     };
-    this.errorMsg = ''; // Limpia el mensaje de error
+
+    if (this.editMode && this.areaToEdit?.Id) {
+      areaData.Id = this.areaToEdit.Id;
+      this.areaService.update(this.areaToEdit.Id, areaData).subscribe({
+        next: () => {
+          this.successMsg = 'Área actualizada correctamente.';
+          this.closeModal();
+          this.loadAreas();
+        },
+        error: err => {
+          console.error('Error actualizando área:', err);
+          this.errorMsg = 'Error al actualizar el área.';
+        }
+      });
+    } else {
+      this.areaService.create(areaData).subscribe({
+        next: () => {
+          this.successMsg = 'Área creada correctamente.';
+          this.closeModal();
+          this.loadAreas();
+        },
+        error: err => {
+          console.error('Error creando área:', err);
+          this.errorMsg = 'Error al crear el área.';
+        }
+      });
+    }
+  }
+
+  deleteAreaConocimiento(id: number | undefined) {
+    if (id === undefined) return;
+    if (!confirm('¿Desea eliminar esta área de conocimiento?')) return;
+
+    this.areaService.delete(id).subscribe({
+      next: () => {
+        this.successMsg = 'Área eliminada correctamente.';
+        this.loadAreas();
+      },
+      error: err => {
+        console.error('Error eliminando área:', err);
+        this.errorMsg = 'Error al eliminar el área.';
+      }
+    });
+  }
+
+  resetForm() {
+    this.nuevaAreaConocimiento = { nombre: '', descripcion: '' };
+    this.editMode = false;
+    this.areaToEdit = null;
+    this.errorMsg = '';
   }
 }

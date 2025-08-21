@@ -1,66 +1,72 @@
-<div class="p-6 space-y-6">
+<div class="main-container">
+  <!-- Formulario para agregar / editar tipo de beca -->
+  <form (ngSubmit)="guardarTipoBeca()" #tipoBecaForm="ngForm" class="tipo-beca-form">
+    <h2 class="form-title">Agregar Tipo de Beca</h2>
 
-  <form (ngSubmit)="guardarTipoBeca()" #tipoBecaForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Tipo de Beca</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoTipoBeca.Nombre" name="nombre" required class="w-full p-2 border rounded">
+    <div class="form-fields-grid">
+      <div class="form-group">
+        <label class="form-label">Nombre:</label>
+        <input type="text" [(ngModel)]="nuevoTipoBeca.Nombre" name="nombre" required class="form-input">
       </div>
-      <div>
-        <label class="block font-semibold">Descripción:</label>
-        <input type="text" [(ngModel)]="nuevoTipoBeca.Descripcion" name="descripcion" class="w-full p-2 border rounded">
+      <div class="form-group">
+        <label class="form-label">Descripción:</label>
+        <input type="text" [(ngModel)]="nuevoTipoBeca.Descripcion" name="descripcion" class="form-input">
       </div>
-      <div>
-        <label class="block font-semibold">Monto:</label>
-        <input type="number" [(ngModel)]="nuevoTipoBeca.Monto" name="monto" required class="w-full p-2 border rounded">
+      <div class="form-group">
+        <label class="form-label">Monto:</label>
+        <input type="number" [(ngModel)]="nuevoTipoBeca.Monto" name="monto" required class="form-input">
       </div>
-      <div>
-        <label class="block font-semibold">Fecha de Registro:</label>
-        <input type="datetime-local" [(ngModel)]="nuevoTipoBeca.FechaRegistro" name="fechaRegistro" class="w-full p-2 border rounded">
+      <div class="form-group">
+        <label class="form-label">Fecha de Registro:</label>
+        <input type="datetime-local" [(ngModel)]="nuevoTipoBeca.FechaRegistro" name="fechaRegistro" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">EstadoId:</label>
+        <input type="number" [(ngModel)]="nuevoTipoBeca.EstadoId" name="estadoId" required class="form-input">
       </div>
     </div>
-        <label class="block font-semibold">EsatadoId:</label>
-        <input type="number" [(ngModel)]="nuevoTipoBeca.EstadoId" name="EstadoId" class="w-full p-2 border rounded">
-    <div class="pt-4">
-      <button type="submit" [disabled]="tipoBecaForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="tipoBecaForm.invalid" class="btn-action">
         💾 Guardar
       </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
+      <button type="button" (click)="limpiarFormulario()" class="btn-secondary">
         🧹 Limpiar
       </button>
     </div>
+
+    <p *ngIf="errorMsg" class="error-alert">{{ errorMsg }}</p>
   </form>
 
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Tipos de Beca</h2>
+  <!-- Listado de tipos de beca -->
+  <div class="tipo-beca-list">
+    <h2 class="table-title">Listado de Tipos de Beca</h2>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
-          <th class="py-2 px-4 text-left">Descripción</th>
-          <th class="py-2 px-4 text-left">Monto</th>
-          <th class="py-2 px-4 text-left">Fecha Registro</th>
-          <th class="py-2 px-4 text-left">Fecha Modificación</th>
-          <th class="py-2 px-4 text-left">EstadoId</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let tipoBeca of tiposBeca" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ tipoBeca.Id }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.Nombre }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.Descripcion }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.Monto }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.FechaRegistro }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.FechaModificacion }}</td>
-          <td class="py-2 px-4">{{ tipoBeca.EstadoId }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>DESCRIPCIÓN</th>
+            <th>MONTO</th>
+            <th>FECHA REGISTRO</th>
+            <th>FECHA MODIFICACIÓN</th>
+            <th>ESTADOID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let tipoBeca of tiposBeca" class="data-table-row">
+            <td>{{ tipoBeca.Id }}</td>
+            <td>{{ tipoBeca.Nombre }}</td>
+            <td>{{ tipoBeca.Monto }}</td>
+            <td>{{ tipoBeca.FechaRegistro }}</td>
+            <td>{{ tipoBeca.FechaModificacion }}</td>
+            <td>{{ tipoBeca.EstadoId }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <p *ngIf="tiposBeca.length === 0" class="text-gray-500 pt-4">No hay tipos de beca registrados.</p>
+    <p *ngIf="tiposBeca.length === 0" class="no-data-message">No hay tipos de beca registrados.</p>
   </div>
 </div>

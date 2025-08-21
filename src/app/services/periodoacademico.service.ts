@@ -1,50 +1,51 @@
+// periodoacademico.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { lastValueFrom, catchError } from 'rxjs';
-import { ErrorService } from './error.service'; // Ajusta la ruta si cambia
+import { Observable } from 'rxjs';
+
+export interface PeriodoAcademico {
+  Id?: number;
+  Nombre: string;
+  AnioAcademico: string;
+  FechaInicio: string | null;
+  FechaFin: string | null;
+  FechaRegistro?: string | null;
+  FechaModificacion?: string | null;
+  EstadoId: number | null;
+  Estadonombre?: string;
+}
+
+interface EstadoLookup {
+  Id: number;
+  Nombre: string;
+}
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class PeriodoAcademicoService {
-  private apiUrl = 'http://localhost:3000/api-beca/PeriodoAcademico';
-  private apipostUrl = 'http://localhost:3000/api-beca/PeriodoAcademico/add';
+  private apiUrl = 'http://localhost:3000/api-beca/periodoacademico';
+  private apiUrlEstado = 'http://localhost:3000/api-beca/estado';
 
-  constructor(
-    private http: HttpClient,
-    private error: ErrorService
-  ) { }
+  constructor(private http: HttpClient) {}
 
-  createPeriodoAcademico(data: any): Promise<any> {
-    const urlp = `${this.apipostUrl}`;
-    return lastValueFrom(
-      this.http.post<any>(urlp, data).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  getAllPeriodoAcademicos(): Observable<PeriodoAcademico[]> {
+    return this.http.get<PeriodoAcademico[]>(this.apiUrl);
   }
 
-
-  async getAllPeriodoAcademicos(): Promise<any[]> {
-    return await lastValueFrom(
-      this.http.get<any[]>(this.apiUrl).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  createPeriodoAcademico(data: PeriodoAcademico): Observable<PeriodoAcademico> {
+    return this.http.post<PeriodoAcademico>(`${this.apiUrl}/add`, data);
   }
 
-  async getPeriodoAcademicoById(id: number): Promise<any> {
-    return await lastValueFrom(
-      this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
-        catchError(this.error.handleError)
-      )
-    );
+  updatePeriodoAcademico(id: number, data: PeriodoAcademico): Observable<PeriodoAcademico> {
+    return this.http.put<PeriodoAcademico>(`${this.apiUrl}/${id}`, data);
   }
 
+  deletePeriodoAcademico(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}`);
+  }
 
-
-
-
-
-
+  getAllEstadosLookup(): Observable<EstadoLookup[]> {
+    return this.http.get<EstadoLookup[]>(this.apiUrlEstado);
+  }
 }

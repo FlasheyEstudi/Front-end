@@ -1,74 +1,77 @@
-<div class="p-6 space-y-6">
-
-  <!-- 🔼 FORMULARIO PARA GUARDAR PERIODO ACADÉMICO -->
-  <form (ngSubmit)="guardarPeriodoAcademico()" #periodoForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Periodo Académico</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoPeriodoAcademico.Nombre" name="nombre" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Año Académico:</label>
-        <input type="text" [(ngModel)]="nuevoPeriodoAcademico.AnioAcademico" name="anioAcademico" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Fecha de Inicio:</label>
-        <input type="datetime-local" [(ngModel)]="nuevoPeriodoAcademico.FechaInicio" name="fechaInicio" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Fecha de Fin:</label>
-        <input type="datetime-local" [(ngModel)]="nuevoPeriodoAcademico.FechaFin" name="fechaFin" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Id del Estado:</label>
-        <input type="number" [(ngModel)]="nuevoPeriodoAcademico.EstadoId" name="estadoId" class="w-full p-2 border rounded">
-      </div>
+<div class="config-container">
+  <header class="config-header">
+    <div class="header-content">
+      <h1>Períodos Académicos</h1>
+      <p>Administra los períodos académicos del sistema</p>
     </div>
+    <button class="btn-primario" (click)="toggleForm()">
+      <i class="fas fa-plus"></i> {{ editMode ? 'Cancelar' : 'Nuevo Período' }}
+    </button>
+  </header>
 
-    <div class="pt-4">
-      <button type="submit" [disabled]="periodoForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
+  <!-- Modal/Formulario -->
+  <div *ngIf="editMode" class="form-section">
+    <div class="form-container">
+      <h2>{{ editMode ? 'Editar Período' : 'Registrar Nuevo Período' }}</h2>
+      <form (ngSubmit)="guardarPeriodoAcademico()" #periodoForm="ngForm">
+        <div class="form-group">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="nuevoPeriodoAcademico.Nombre" name="nombre" required placeholder="Nombre del período">
+        </div>
+        <div class="form-group">
+          <label>Año *</label>
+          <input type="number" [(ngModel)]="nuevoPeriodoAcademico.AnioAcademico" name="anio" required min="2000" max="2100">
+        </div>
+        <div class="form-group">
+          <label>Fecha Inicio *</label>
+          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaInicio" name="fechaInicio" required>
+        </div>
+        <div class="form-group">
+          <label>Fecha Fin *</label>
+          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaFin" name="fechaFin" required>
+        </div>
+        <div class="form-group">
+          <label>Estado *</label>
+          <select [(ngModel)]="nuevoPeriodoAcademico.EstadoId" name="estadoId" required>
+            <option value="">Seleccione un estado</option>
+            <option *ngFor="let estado of estadosLookup" [value]="estado.Id">{{ estado.Nombre }}</option>
+          </select>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primario" [disabled]="periodoForm.invalid">{{ editMode ? 'Actualizar' : 'Registrar' }}</button>
+          <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
 
-  <!-- 🔽 TABLA DE PERIODOS ACADÉMICOS -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Periodos Académicos</h2>
+  <div *ngIf="errorMsg" class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</div>
+  <div *ngIf="successMsg" class="alert alert-success"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead>
         <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
-          <th class="py-2 px-4 text-left">Año Académico</th>
-          <th class="py-2 px-4 text-left">Fecha Inicio</th>
-          <th class="py-2 px-4 text-left">Fecha Fin</th>
-          <th class="py-2 px-4 text-left">Fecha Registro</th>
-          <th class="py-2 px-4 text-left">Fecha Modificación</th>
-          <th class="py-2 px-4 text-left">Id Estado</th>
+          <th>ID</th><th>Nombre</th><th>Año</th><th>Inicio</th><th>Fin</th><th>Estado</th><th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let periodo of periodosAcademicos" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ periodo.Id }}</td>
-          <td class="py-2 px-4">{{ periodo.Nombre }}</td>
-          <td class="py-2 px-4">{{ periodo.AnioAcademico }}</td>
-          <td class="py-2 px-4">{{ periodo.FechaInicio | date: 'medium' }}</td>
-          <td class="py-2 px-4">{{ periodo.FechaFin | date: 'medium' }}</td>
-          <td class="py-2 px-4">{{ periodo.FechaRegistro | date: 'medium' }}</td>
-          <td class="py-2 px-4">{{ periodo.FechaModificacion | date: 'medium' }}</td>
-          <td class="py-2 px-4">{{ periodo.EstadoId }}</td>
+        <tr *ngFor="let periodo of filteredPeriodosAcademicos">
+          <td>{{ periodo.Id }}</td>
+          <td>{{ periodo.Nombre }}</td>
+          <td>{{ periodo.AnioAcademico }}</td>
+          <td>{{ formatDate(periodo.FechaInicio) }}</td>
+          <td>{{ formatDate(periodo.FechaFin) }}</td>
+          <td>{{ periodo.Estadonombre }}</td>
+          <td class="actions-cell">
+            <button class="btn-edit" (click)="editPeriodoAcademico(periodo)"><i class="fas fa-edit"></i></button>
+            <button class="btn-delete" (click)="deletePeriodoAcademico(periodo.Id)"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>
+        <tr *ngIf="filteredPeriodosAcademicos.length === 0">
+          <td colspan="7" class="no-data">No hay períodos registrados</td>
         </tr>
       </tbody>
     </table>
-
-    <p *ngIf="periodosAcademicos.length === 0" class="text-gray-500 pt-4">No hay periodos académicos registrados.</p>
   </div>
 </div>
-

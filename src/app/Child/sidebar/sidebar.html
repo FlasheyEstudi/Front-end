@@ -1,0 +1,45 @@
+<aside class="sidebar" [class.collapsed]="collapsed">
+  <!-- Header -->
+  <div class="sidebar-header">
+    <div class="logo-container" *ngIf="!collapsed">
+      <img src="assets/logo-universidad.png" alt="Logo Universidad" class="logo-img" />
+      <span class="logo-text">UNIVERSIDAD NACIONAL MULTIDISCIPLINARIA RICARDO MORALES AVILÉS</span>
+    </div>
+    <button class="collapse-btn" (click)="toggleCollapse()" aria-label="Colapsar sidebar">
+      <i class="fas {{ collapsed ? 'fa-chevron-right' : 'fa-chevron-left' }}"></i>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav" role="navigation" aria-label="Menú principal">
+    <a *ngFor="let item of menuItems"
+       [routerLink]="item.route"
+       class="nav-item"
+       [class.active]="isActive(item.route)"
+       [class.disabled]="!item.visible">
+      <span class="nav-icon" aria-hidden="true">
+        <i class="fas" [ngClass]="getIconClass(item.icon)"></i>
+      </span>
+      <span *ngIf="!collapsed">{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="avatar" aria-label="Avatar usuario">
+        {{ userName.charAt(0).toUpperCase() }}
+      </div>
+      <div>
+        <strong *ngIf="!collapsed">{{ userName }}</strong><br />
+        <small *ngIf="!collapsed">{{ userRole }}</small>
+      </div>
+    </div>
+    <button class="logout-btn" (click)="logout()">
+      <span class="nav-icon" aria-hidden="true">
+        <i class="fas fa-sign-out-alt"></i>
+      </span>
+      <span *ngIf="!collapsed">Cerrar Sesión</span>
+    </button>
+  </div>
+</aside>

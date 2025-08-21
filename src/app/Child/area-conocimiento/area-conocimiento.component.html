@@ -1,45 +1,95 @@
-<div class="p-6 space-y-6">
-
-  <!-- 🔼 FORMULARIO PARA GUARDAR ÁREA DE CONOCIMIENTO -->
-  <form (ngSubmit)="guardarAreaConocimiento()" #areaForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Área de Conocimiento</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevaAreaConocimiento.nombre" name="nombre" required class="w-full p-2 border rounded">
-      </div>
+<div class="config-container">
+  <!-- Header -->
+  <header class="config-header">
+    <div class="header-content">
+      <h1>Áreas de Conocimiento</h1>
+      <p>Administra las áreas de conocimiento del sistema</p>
     </div>
+    <button class="btn-primary" (click)="openModal(false)">
+      <i class="fas fa-plus"></i> Nueva Área
+    </button>
+  </header>
 
-    <div class="pt-4">
-      <button type="submit" [disabled]="areaForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
-      </button>
-    </div>
-  </form>
+  <!-- Mensajes de estado -->
+  <div *ngIf="errorMsg" class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMsg }}
+  </div>
 
-  <!-- 🔽 TABLA DE ÁREAS DE CONOCIMIENTO -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Áreas de Conocimiento</h2>
-
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
+  <!-- Tabla de áreas -->
+  <div class="table-responsive">
+    <table class="table-modern">
+      <thead>
         <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let area of areasConocimiento" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ area.Id }}</td>
-          <td class="py-2 px-4">{{ area.nombre }}</td>
+        <tr *ngFor="let area of areasConocimiento">
+          <td>{{ area.Id }}</td>
+          <td>{{ area.nombre }}</td>
+          <td>{{ area.descripcion || '' }}</td>
+          <td class="actions-cell">
+            <button class="btn-edit" (click)="openModal(true, area)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-delete" (click)="deleteAreaConocimiento(area.Id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="areasConocimiento.length === 0">
+          <td colspan="4" class="no-data">
+            No hay áreas registradas
+          </td>
         </tr>
       </tbody>
     </table>
+  </div>
+</div>
 
-    <p *ngIf="areasConocimiento.length === 0" class="text-gray-500 pt-4">No hay áreas registradas.</p>
+<!-- ================== MODAL ================== -->
+<div class="modal-backdrop" *ngIf="showModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>{{ editMode ? 'Editar Área de Conocimiento' : 'Registrar Nueva Área' }}</h2>
+      <button class="modal-close" (click)="closeModal()">&times;</button>
+    </div>
+    <form (ngSubmit)="guardarAreaConocimiento()" #areaForm="ngForm">
+      <div class="form-group">
+        <label for="nombre">Nombre *</label>
+        <input 
+          type="text" 
+          id="nombre" 
+          [(ngModel)]="nuevaAreaConocimiento.nombre" 
+          name="nombre" 
+          required 
+          placeholder="Nombre del área"
+        >
+      </div>
+      <div class="form-group">
+        <label for="descripcion">Descripción</label>
+        <textarea 
+          id="descripcion" 
+          [(ngModel)]="nuevaAreaConocimiento.descripcion" 
+          name="descripcion" 
+          placeholder="Descripción del área"
+          rows="3"
+        ></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primario" [disabled]="areaForm.invalid">
+          {{ editMode ? 'Actualizar' : 'Registrar' }}
+        </button>
+        <button type="button" class="btn-secundario" (click)="closeModal()">
+          Cancelar
+        </button>
+      </div>
+    </form>
   </div>
 </div>

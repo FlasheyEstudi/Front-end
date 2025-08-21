@@ -1,53 +1,89 @@
-<div class="p-6 space-y-6">
+<!-- src/app/Child/TipoPago/tipopago.component.html -->
+<div class="tipopago-container">
+  <div class="card-container">
+    <h1 class="main-title">Gestión de Tipos de Pago</h1>
 
-  <!-- 🔼 FORMULARIO PARA GUARDAR TIPO DE PAGO -->
-  <form (ngSubmit)="guardarTipoPago()" #tipoPagoForm="ngForm" class="space-y-4 bg-gray-100 p-4 rounded-md shadow-md">
-    <h2 class="text-xl font-bold text-blue-800">Agregar Tipo de Pago</h2>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block font-semibold">Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoTipoPago.Nombre" name="nombre" required class="w-full p-2 border rounded">
-      </div>
-      <div>
-        <label class="block font-semibold">Descripcion:</label>
-        <input type="text" [(ngModel)]="nuevoTipoPago.Descripcion" name="descripcion" required class="w-full p-2 border rounded">
-      </div>
-    </div>
-    
-    <div class="pt-4">
-      <button type="submit" [disabled]="tipoPagoForm.invalid" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        💾 Guardar
-      </button>
-      <button type="button" (click)="limpiarFormulario()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 ml-2">
-        🧹 Limpiar
+    <div class="top-bar">
+      <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()"
+             placeholder="Buscar tipo de pago..." class="search-input">
+      <button (click)="editMode ? cancelEdit() : toggleForm()" class="btn-primary">
+        {{ editMode ? 'Cancelar Edición' : 'Agregar Tipo de Pago' }}
       </button>
     </div>
-  </form>
 
-  <!-- 🔽 TABLA DE TIPOS DE PAGO -->
-  <div class="pt-6">
-    <h2 class="text-xl font-bold text-blue-800 mb-2">Listado de Tipos de Pago</h2>
+    <div *ngIf="errorMsg" class="alert error-alert">{{ errorMsg }}</div>
+    <div *ngIf="successMsg" class="alert success-alert">{{ successMsg }}</div>
 
-    <table class="min-w-full bg-white shadow-md rounded">
-      <thead class="bg-blue-600 text-white">
-        <tr>
-          <th class="py-2 px-4 text-left">Id</th>
-          <th class="py-2 px-4 text-left">Nombre</th>
-          <th class="py-2 px-4 text-left">Descripción</th>
-          <th class="py-2 px-4 text-left">Estadoid</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let tipoPago of tiposDePago" class="border-b hover:bg-gray-100">
-          <td class="py-2 px-4">{{ tipoPago.Id }}</td>
-          <td class="py-2 px-4">{{ tipoPago.Nombre }}</td>
-          <td class="py-2 px-4">{{ tipoPago.Descripcion }}</td>
-          <td class="py-2 px-4">{{ tipoPago.Estadoid }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="form-section">
+      <h3 class="form-title">
+        {{ editMode ? 'Editar Tipo de Pago' : 'Agregar Nuevo Tipo de Pago' }}
+      </h3>
+      <div class="form-fields-grid">
+        <div>
+          <label for="nombre" class="form-label">Nombre:</label>
+          <input type="text" id="nombre" [(ngModel)]="nuevoTipoPago.Nombre" name="nombre" required
+                 class="form-input">
+        </div>
+        <div>
+          <label for="descripcion" class="form-label">Descripción:</label>
+          <textarea id="descripcion" [(ngModel)]="nuevoTipoPago.Descripcion" name="descripcion"
+                    class="form-input textarea-height" placeholder="Ingrese una descripción"></textarea>
+        </div>
+        <div>
+          <label for="estado" class="form-label">Estado:</label>
+          <select id="estado" [(ngModel)]="nuevoTipoPago.EstadoId" name="estado" required
+                  class="form-select">
+            <option [ngValue]="null" disabled>-- Seleccione un estado --</option>
+            <option *ngFor="let est of estadosLookup" [ngValue]="est.Id">
+              {{ est.Nombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button (click)="guardarTipoPago()" class="btn-action">
+          {{ editMode ? 'Actualizar' : 'Guardar' }}
+        </button>
+        <button *ngIf="editMode" (click)="cancelEdit()" class="btn-secondary">
+          Cancelar
+        </button>
+      </div>
+    </div>
 
-    <p *ngIf="tiposDePago.length === 0" class="text-gray-500 pt-4">No hay tipos de pago registrados.</p>
+    <hr class="divider">
+
+    <div class="table-section">
+      <h3 class="table-title">Listado de Tipos de Pago</h3>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Descripción</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tipo of filteredTiposDePago">
+              <td>{{ tipo.Id }}</td>
+              <td>{{ tipo.Nombre }}</td>
+              <td>{{ tipo.Descripcion }}</td>
+              <td>{{ tipo.Estadonombre || 'Desconocido' }}</td>
+              <td class="actions-cell">
+                <button class="btn-edit" (click)="editTipoPago(tipo)">Editar</button>
+                <button class="btn-delete" (click)="deleteTipoPago(tipo.Id)">Eliminar</button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredTiposDePago.length === 0">
+              <td colspan="5" class="no-data-message">
+                No hay tipos de pago registrados o no coinciden con la búsqueda.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>

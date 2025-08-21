@@ -1,99 +1,96 @@
-import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TipoBecaService } from '../../services/tipobeca.service';
 
-// Definimos una interfaz para asegurar que la estructura de los datos sea correcta
 interface TipoBeca {
-  Id: number | null;
+  Id?: number;
   Nombre: string;
   Descripcion: string;
-  Monto: number | null;
-  FechaRegistro: string | null;
-  FechaModificacion: string | null;
-  EstadoId: number | null;
+  Monto: number;
+  FechaRegistro?: string;
+  FechaModificacion?: string;
+  EstadoId: number;
 }
 
 @Component({
-  selector: 'app-tipobeca',
+  selector: 'app-tipo-beca',
   standalone: true,
-  imports: [RouterModule, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './tipo-beca.component.html',
-  styleUrl: './tipo-beca.component.css'
+  styleUrls: ['./tipo-beca.component.css']
 })
-export class TipoBecaComponent {
-  // Inicializamos tiposBeca con un array vacío del tipo TipoBeca
+export class TipoBecaComponent implements OnInit {
   tiposBeca: TipoBeca[] = [];
-  
-  // Ahora el objeto nuevoTipoBeca incluye todas las propiedades necesarias
   nuevoTipoBeca: TipoBeca = {
-    Id: null, // Id es nulo para los nuevos registros
     Nombre: '',
     Descripcion: '',
-    Monto: null,
-    FechaRegistro: '', // Inicializamos como string para el input datetime-local
-    FechaModificacion: null, // No se necesita en el formulario, pero lo incluimos en la interfaz
-    EstadoId: null // Inicializamos como nulo
+    Monto: 0,
+    FechaRegistro: new Date().toISOString().slice(0, 16),
+    FechaModificacion: new Date().toISOString().slice(0, 16),
+    EstadoId: 1
   };
+  errorMsg = '';
+  loading = false;
 
-  errorMsg: string = '';
-
-  constructor(private TipoBecaServices: TipoBecaService) {
-    this.loadTiposBeca();
+  ngOnInit() {
+    this.cargarTiposBeca();
   }
 
-  async loadTiposBeca() {
-    this.errorMsg = '';
-    try {
-      this.tiposBeca = await this.TipoBecaServices.getAllTipoBecas();
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error desconocido al cargar tipos de beca.';
-      console.error('❌ ERROR al cargar tipos de beca:', error);
+  cargarTiposBeca() {
+    // Simulación de carga de datos
+    this.tiposBeca = [
+      {
+        Id: 1,
+        Nombre: 'Beca Académica',
+        Descripcion: 'Beca para estudiantes con buen rendimiento académico',
+        Monto: 1500,
+        FechaRegistro: '2023-01-15T10:30',
+        FechaModificacion: '2023-01-15T10:30',
+        EstadoId: 1
+      },
+      {
+        Id: 2,
+        Nombre: 'Beca Deportiva',
+        Descripcion: 'Beca para estudiantes destacados en actividades deportivas',
+        Monto: 2000,
+        FechaRegistro: '2023-02-20T14:45',
+        FechaModificacion: '2023-02-20T14:45',
+        EstadoId: 1
+      }
+    ];
+  }
+
+  guardarTipoBeca() {
+    if (!this.nuevoTipoBeca.Nombre || !this.nuevoTipoBeca.Monto) {
+      this.errorMsg = 'Por favor complete todos los campos obligatorios';
+      return;
     }
-  }
 
-  async guardarTipoBeca() {
-    console.log('INTENTANDO GUARDAR:', this.nuevoTipoBeca);
-
-    try {
-      const dataEnviar = {
-        Id: 0,
-        Nombre: this.nuevoTipoBeca.Nombre,
-        Descripcion: this.nuevoTipoBeca.Descripcion,
-        Monto: Number(this.nuevoTipoBeca.Monto),
-        // EstadoId ya está en el objeto, por lo que lo usamos directamente
-        EstadoId: Number(this.nuevoTipoBeca.EstadoId)
-      };
-
-      console.log('DATOS A ENVIAR:', dataEnviar);
-
-      const respuesta = await this.TipoBecaServices.createTipoBeca(dataEnviar);
-      console.log('RESPUESTA DEL BACKEND:', respuesta);
-
+    this.loading = true;
+    
+    // Simulación de guardado
+    setTimeout(() => {
+      this.tiposBeca.push({
+        ...this.nuevoTipoBeca,
+        Id: this.tiposBeca.length + 1,
+        FechaRegistro: new Date().toISOString().slice(0, 16),
+        FechaModificacion: new Date().toISOString().slice(0, 16)
+      });
+      
       this.limpiarFormulario();
-      this.loadTiposBeca();
-    } catch (error: any) {
-      this.errorMsg = error.message || 'Error al guardar tipo de beca.';
-      console.error('❌ ERROR:', error);
-    }
+      this.errorMsg = '';
+      this.loading = false;
+    }, 1000);
   }
 
   limpiarFormulario() {
     this.nuevoTipoBeca = {
-      Id: null,
       Nombre: '',
       Descripcion: '',
-      Monto: null,
-      FechaRegistro: '',
-      FechaModificacion: null,
-      EstadoId: null
+      Monto: 0,
+      FechaRegistro: new Date().toISOString().slice(0, 16),
+      FechaModificacion: new Date().toISOString().slice(0, 16),
+      EstadoId: 1
     };
-    this.errorMsg = '';
-  }
-
-  limpiarTiposBeca() {
-    this.tiposBeca = [];
-    this.errorMsg = '';
   }
 }

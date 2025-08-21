@@ -1,0 +1,127 @@
+<div class="register-container">
+  <div class="register-card">
+    <!-- Logo o ícono -->
+    <div class="logo-container">
+      <div class="logo"></div>
+    </div>
+
+    <!-- Título principal -->
+    <h2 class="register-title">Crear Cuenta</h2>
+    <p class="subtitle">Completa tus datos para registrarte</p>
+
+    <!-- Formulario -->
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
+      <!-- Mensajes de error o carga -->
+      <div *ngIf="error" class="alert-message error-message">
+        {{ error }}
+      </div>
+      <div *ngIf="loading" class="alert-message loading-message">
+        Registrando...
+      </div>
+
+      <!-- Campo de nombre -->
+      <div class="form-group">
+        <label for="nombre">Nombre:</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user"></i>
+          <input
+            id="nombre"
+            [(ngModel)]="Nombre"
+            name="Nombre"
+            required
+            type="text"
+            placeholder="Ingresa tu nombre"
+            class="form-input"
+          />
+        </div>
+        <div *ngIf="registerForm.controls['Nombre']?.invalid && (registerForm.controls['Nombre']?.dirty || registerForm.controls['Nombre']?.touched)" class="validation-error">
+          <div *ngIf="registerForm.controls['Nombre']?.errors?.['required']">El nombre es obligatorio.</div>
+        </div>
+      </div>
+
+      <!-- Campo de apellidos -->
+      <div class="form-group">
+        <label for="apellidos">Apellidos:</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user-friends"></i>
+          <input
+            id="apellidos"
+            [(ngModel)]="Apellidos"
+            name="Apellidos"
+            type="text"
+            placeholder="Ingresa tus apellidos"
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <!-- Campo de correo -->
+      <div class="form-group">
+        <label for="correo">Correo Electrónico:</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope"></i>
+          <input
+            id="correo"
+            [(ngModel)]="Correo"
+            name="Correo"
+            required
+            type="email"
+            placeholder="Ingresa tu correo"
+            class="form-input"
+          />
+        </div>
+        <div *ngIf="registerForm.controls['Correo']?.invalid && (registerForm.controls['Correo']?.dirty || registerForm.controls['Correo']?.touched)" class="validation-error">
+          <div *ngIf="registerForm.controls['Correo']?.errors?.['required']">El correo es obligatorio.</div>
+          <div *ngIf="registerForm.controls['Correo']?.errors?.['email']">Ingresa un correo válido.</div>
+        </div>
+      </div>
+
+      <!-- Campo de contraseña -->
+      <div class="form-group">
+        <label for="contrasena">Contraseña:</label>
+        <div class="input-wrapper password-wrapper">
+          <i class="fas fa-lock"></i>
+          <input
+            id="contrasena"
+            [(ngModel)]="Contrasena"
+            name="Contrasena"
+            required
+            [type]="showPassword ? 'text' : 'password'"
+            placeholder="Ingresa tu contraseña"
+            class="form-input"
+          />
+          <span class="password-toggle" (click)="togglePasswordVisibility()">
+            <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </span>
+        </div>
+        <div *ngIf="registerForm.controls['Contrasena']?.invalid && (registerForm.controls['Contrasena']?.dirty || registerForm.controls['Contrasena']?.touched)" class="validation-error">
+          <div *ngIf="registerForm.controls['Contrasena']?.errors?.['required']">La contraseña es obligatoria.</div>
+          <div *ngIf="registerForm.controls['Contrasena']?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</div>
+        </div>
+      </div>
+
+      <!-- Campo de rol -->
+      <div class="form-group">
+        <label for="role">Rol:</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user-tag"></i>
+          <select id="role" [(ngModel)]="Role" name="Role" class="form-select">
+            <option value="estudiante">Estudiante</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Botón de registro -->
+      <button type="submit" [disabled]="loading || registerForm.invalid" class="btn-register">
+        <i class="fas fa-user-plus"></i>
+        {{ loading ? 'Registrando...' : 'Registrarse' }}
+      </button>
+    </form>
+
+    <!-- Enlace de login -->
+    <div class="login-link">
+      ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a>
+    </div>
+  </div>
+</div>

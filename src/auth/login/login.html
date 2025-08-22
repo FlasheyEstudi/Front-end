@@ -35,24 +35,24 @@
 
     <!-- Formulario -->
     <form (ngSubmit)="login(loginForm)" #loginForm="ngForm" class="login-form">
-      <!-- Campo de correo -->
+      <!-- Campo de identificador -->
       <div class="form-group">
-        <label for="correo">Usuario o Carnet:</label>
+        <label for="identifier">Usuario o Carnet:</label>
         <div class="input-wrapper">
           <i class="fas fa-user"></i>
           <input
             type="text"
-            id="correo"
-            name="correo"
-            [(ngModel)]="correo"
+            id="identifier"
+            name="identifier"
+            [(ngModel)]="identifier"
             required
-            #correoInput="ngModel"
+            #identifierInput="ngModel"
             class="form-input"
             placeholder="Ingresa tu carnet o usuario"
           />
         </div>
-        <div *ngIf="correoInput.invalid && (correoInput.dirty || correoInput.touched)" class="validation-error">
-          <div *ngIf="correoInput.errors?.['required']">El campo es obligatorio.</div>
+        <div *ngIf="identifierInput.invalid && (identifierInput.dirty || identifierInput.touched)" class="validation-error">
+          <div *ngIf="identifierInput.errors?.['required']">El campo es obligatorio.</div>
         </div>
       </div>
 

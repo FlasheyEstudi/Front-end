@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,12 +12,12 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.css']
 })
 export class LoginComponent {
-  correo = '';
+  identifier = ''; // Cambiado de correo a identifier para consistencia
   password = '';
   error = '';
   loading = false;
   showPassword = false;
-  selectedRole = 'estudiante'; // Por defecto: estudiante
+  selectedRole = 'estudiante'; // Definido para los botones de rol
 
   constructor(
     private authService: AuthService,
@@ -32,27 +32,24 @@ export class LoginComponent {
     this.selectedRole = role;
   }
 
-  login(loginForm: any) {
-    if (!this.correo || !this.password) {
-      this.error = 'Por favor, complete todos los campos';
+  login(loginForm: NgForm) {
+    if (loginForm.invalid) {
+      this.error = 'Por favor, complete todos los campos correctamente';
       return;
     }
     
     this.loading = true;
     this.error = '';
-    
-    const identifier = this.correo;
-    
-    this.authService.login(identifier, this.password).subscribe({
-      next: (response) => {
+
+    this.authService.login(this.identifier, this.password).subscribe({
+      next: () => {
         this.loading = false;
-        // Guardar rol en localStorage
-        localStorage.setItem('role', this.selectedRole);
+        localStorage.setItem('role', this.selectedRole); // Guardar rol seleccionado
         this.router.navigate(['/dashboard']);
       },
-      error: (error: any) => {
-        console.error('Error de login en componente:', error);
-        this.error = error.error?.message || 'Credenciales incorrectas o error de servidor. Inténtalo de nuevo.';
+      error: (err) => {
+        console.error('Error de login:', err);
+        this.error = err.message || 'Credenciales incorrectas o error de servidor. Inténtalo de nuevo.';
         this.loading = false;
       }
     });

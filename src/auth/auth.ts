@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
@@ -79,49 +79,48 @@ export class AuthService {
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
 
-  // 🔑 Login
   login(identifier: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
       tap(res => {
         if (isPlatformBrowser(this.platformId)) {
           localStorage.setItem('access_token', res.access_token);
         }
-
-        const userEmail = identifier.includes('@') ? identifier : undefined;
-
-        this.currentUserSubject.next({
-          ...res.user,
-          email: userEmail
-        });
-
+        this.currentUserSubject.next(res.user);
         this.router.navigate(['/dashboard']);
       }),
-      catchError(err => { throw err; })
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el login')))
     );
   }
 
-  // ✅ Registro
-  register(data: RegisterUser): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, data);
+  register(data: RegisterUser): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
+      tap(res => {
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('access_token', res.access_token);
+          localStorage.setItem('role', res.user.role);
+          this.currentUserSubject.next(res.user);
+          this.router.navigate(['/dashboard']);
+        }
+      }),
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el registro')))
+    );
   }
 
-  // 🔐 Logout
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('access_token');
+      localStorage.removeItem('role');
     }
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  // ✅ Estado de sesión
   isLoggedIn(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     const token = localStorage.getItem('access_token');
     return !!token && !this.isTokenExpired(token);
   }
 
-  // ✅ Obtener usuario actual
   getCurrentUser(): CurrentUser | null {
     return this.currentUserSubject.value;
   }
@@ -134,7 +133,6 @@ export class AuthService {
     return this.currentUserSubject.value?.id || null;
   }
 
-  // 🔹 Alias claro
   getCurrentUserId(): number | null {
     return this.getUserId();
   }
@@ -143,20 +141,21 @@ export class AuthService {
     return this.currentUserSubject.value?.email;
   }
 
-  // 🔐 Cambio de contraseña (envía token JWT automáticamente)
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    if (!this.isLoggedIn()) {
+      this.logout();
+      return throwError(() => new Error('Sesión expirada. Por favor, inicia sesión nuevamente.'));
+    }
     const token = localStorage.getItem('access_token');
-    if (!token) throw new Error('Usuario no autenticado');
-
     const headers = new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
-
-    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }, { headers });
+    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }, { headers }).pipe(
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error al cambiar la contraseña')))
+    );
   }
 
-  // ✅ Token expirado
   private isTokenExpired(token: string): boolean {
     try {
       const decoded = jwtDecode<DecodedToken>(token);

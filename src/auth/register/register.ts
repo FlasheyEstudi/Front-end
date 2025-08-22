@@ -1,4 +1,3 @@
-// src/auth/register/register.component.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, RegisterUser } from '../auth';
@@ -35,7 +34,6 @@ export class RegisterComponent {
 
   onSubmit(event?: Event) {
     if (event) event.preventDefault();
-
     this.error = '';
 
     if (!this.Nombre.trim()) {
@@ -72,12 +70,11 @@ export class RegisterComponent {
     this.authService.register(user).subscribe({
       next: () => {
         this.loading = false;
-        alert('Registro exitoso. Por favor inicia sesión.');
-        this.router.navigate(['/login']);
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;
-        this.error = err.error?.message || 'Error al registrar usuario. Intenta más tarde.';
+        this.error = err.message || 'Error al registrar usuario. Intenta de nuevo.';
       }
     });
   }

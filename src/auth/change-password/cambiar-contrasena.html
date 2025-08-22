@@ -1,66 +1,56 @@
-<div class="container">
+<!-- src/app/Child/CambiarContrasena/cambiar-contrasena.html -->
+<div class="cambiar-contrasena-contenido">
   <h2>Cambiar Contraseña</h2>
-  <form [formGroup]="form" (ngSubmit)="submit()" class="login-form">
+
+  <!-- Mensajes de estado -->
+  <div *ngIf="showMessage">
+    <div *ngIf="success" class="alert alert-success">
+      {{ success }}
+      <button (click)="goToProfile()" class="btn btn-link">Ir a tu perfil</button>
+      <!-- Opcional: botón para cerrar el mensaje -->
+      <!-- <button (click)="closeMessage()" class="close-btn">&times;</button> -->
+    </div>
+    <div *ngIf="error" class="alert alert-danger">
+      {{ error }}
+      <!-- <button (click)="closeMessage()" class="close-btn">&times;</button> -->
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <form [formGroup]="form" (ngSubmit)="submit()" *ngIf="!loading">
     <div class="form-group">
-      <label for="currentPassword">Contraseña actual</label>
-      <div class="input-wrapper">
-        <i class="fas fa-lock"></i>
-        <input
-          type="password"
-          id="currentPassword"
-          formControlName="currentPassword"
-          class="form-input"
-          placeholder="Ingresa tu contraseña actual"
-        />
-      </div>
-      <div *ngIf="form.get('currentPassword')?.hasError('required') && form.get('currentPassword')?.touched" class="validation-error">
-        La contraseña actual es obligatoria.
+      <label for="currentPassword">Contraseña Actual:</label>
+      <input type="password" id="currentPassword" formControlName="currentPassword" class="form-control" required>
+      <div *ngIf="form.get('currentPassword')?.invalid && form.get('currentPassword')?.touched" class="text-danger">
+        La contraseña actual es requerida.
       </div>
     </div>
 
     <div class="form-group">
-      <label for="newPassword">Nueva contraseña</label>
-      <div class="input-wrapper">
-        <i class="fas fa-lock"></i>
-        <input
-          type="password"
-          id="newPassword"
-          formControlName="newPassword"
-          class="form-input"
-          placeholder="Ingresa tu nueva contraseña"
-        />
-      </div>
-      <div *ngIf="form.get('newPassword')?.hasError('required') && form.get('newPassword')?.touched" class="validation-error">
-        La nueva contraseña es obligatoria.
-      </div>
-      <div *ngIf="form.get('newPassword')?.hasError('minlength') && form.get('newPassword')?.touched" class="validation-error">
-        La nueva contraseña debe tener al menos 6 caracteres.
+      <label for="newPassword">Nueva Contraseña:</label>
+      <input type="password" id="newPassword" formControlName="newPassword" class="form-control" required minlength="6">
+      <div *ngIf="form.get('newPassword')?.invalid && form.get('newPassword')?.touched" class="text-danger">
+        <div *ngIf="form.get('newPassword')?.errors?.['required']">La nueva contraseña es requerida.</div>
+        <div *ngIf="form.get('newPassword')?.errors?.['minlength']">La nueva contraseña debe tener al menos 6 caracteres.</div>
       </div>
     </div>
 
     <div class="form-group">
-      <label for="confirmNewPassword">Confirmar nueva contraseña</label>
-      <div class="input-wrapper">
-        <i class="fas fa-lock"></i>
-        <input
-          type="password"
-          id="confirmNewPassword"
-          formControlName="confirmNewPassword"
-          class="form-input"
-          placeholder="Confirma tu nueva contraseña"
-        />
-      </div>
-      <div *ngIf="form.hasError('notMatching') && form.get('confirmNewPassword')?.touched" class="validation-error">
+      <label for="confirmNewPassword">Confirmar Nueva Contraseña:</label>
+      <input type="password" id="confirmNewPassword" formControlName="confirmNewPassword" class="form-control" required>
+      <div *ngIf="form.hasError('notMatching') && form.get('confirmNewPassword')?.touched" class="text-danger">
         Las contraseñas no coinciden.
       </div>
     </div>
 
-    <div *ngIf="error" class="validation-error">{{ error }}</div>
-    <div *ngIf="success" class="success">{{ success }}</div>
-
-    <button type="submit" [disabled]="form.invalid || loading" class="btn-login">
-      <i class="fas fa-sign-in-alt"></i>
-      {{ loading ? 'Cargando...' : 'Cambiar Contraseña' }}
+    <button type="submit" [disabled]="form.invalid || loading" class="btn btn-primary">
+      <span *ngIf="!loading">Cambiar Contraseña</span>
+      <span *ngIf="loading">Cambiando...</span>
     </button>
   </form>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="loading" class="text-center">
+    <p>Cambiando contraseña...</p>
+  </div>
 </div>

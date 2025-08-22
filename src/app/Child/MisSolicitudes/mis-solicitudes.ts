@@ -1,3 +1,4 @@
+// src/app/Child/MisSolicitudes/mis-solicitudes.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -120,7 +121,7 @@ export class MisSolicitudesComponent implements OnInit {
   private cargarSolicitudes(): void {
     if (!this.estudianteId) return;
     
-    this.http.get<Solicitud[]>(`${this.baseUrl}/solicitud-beca/estudiante/${this.estudianteId}`, { headers: this.getHeaders() })
+    this.http.get<Solicitud[]>(`${this.baseUrl}/solicitudbeca/estudiante/${this.estudianteId}`, { headers: this.getHeaders() })
       .subscribe({
         next: data => {
           this.solicitudes = data;

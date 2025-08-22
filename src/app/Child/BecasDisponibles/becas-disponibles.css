@@ -1,14 +1,22 @@
-.categorias-container {
+/* Becas - Estilo igual al de Estudiantes */
+.becas-contenido {
   margin-left: 260px;
   padding: 2rem;
   min-height: 100vh;
   background: #f8f9fa;
   transition: margin-left 0.3s ease;
+  position: relative;
+}
+
+/* Header principal */
+.page-header {
+  text-align: left;
+  margin-bottom: 2rem;
 }
 
 .page-header h1 {
   font-size: 1.8rem;
-  color: #2196f3;
+  color: #4caf50;
   font-weight: 600;
   margin-bottom: 0.5rem;
 }
@@ -16,49 +24,6 @@
 .page-header p {
   color: #666;
   font-size: 0.95rem;
-}
-
-.filters-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  border: 1px solid #ddd;
-}
-
-.search-group, .category-group {
-  flex: 1;
-}
-
-.search-group label,
-.category-group label {
-  display: block;
-  font-size: 0.85rem;
-  color: #666;
-  margin-bottom: 0.3rem;
-}
-
-.search-group input,
-.category-group select {
-  width: 100%;
-  padding: 0.6rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 0.95rem;
-}
-
-.count-badge {
-  background: #2196f3;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 500;
 }
 
 .btn-solicitud-general {
@@ -70,21 +35,71 @@
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  transition: all 0.2s ease;
 }
 
+.btn-solicitud-general:hover {
+  background: #388e3c;
+  transform: translateY(-1px);
+}
+
+/* Filtros */
+.filters-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+  background: white;
+  border-radius: 8px;
+  padding: 0.8rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border: 1px solid #ddd;
+}
+
+.filters-container label {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+
+.search-group input,
+.category-group select {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  min-width: 200px;
+}
+
+.count-badge {
+  background: #4caf50;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Tarjetas de becas */
 .cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
-  margin-top: 1rem;
 }
 
 .card {
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  overflow: hidden;
-  border: 1px solid #eee;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.2s ease;
 }
 
@@ -94,93 +109,87 @@
 }
 
 .card-header {
-  padding: 1.2rem;
-  border-bottom: 1px solid #eee;
-  position: relative;
+  margin-bottom: 1rem;
 }
 
-.card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #333;
+.beca-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag {
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+}
+
+.tag-academica {
+  background: #2196f3;
+}
+
+.tag-deportiva {
+  background: #f44336;
+}
+
+.tag-transporte {
+  background: #ff9800;
+}
+
+.tag-disponible {
+  background: #4caf50;
 }
 
 .coverage {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .coverage-percent {
-  font-size: 1.2rem;
   font-weight: bold;
-  color: #2196f3;
-}
-
-.coverage-text {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.card-body {
-  padding: 1.2rem;
+  margin-right: 0.3rem;
+  color: #4caf50;
 }
 
 .card-body .description {
-  color: #666;
+  font-size: 0.9rem;
+  color: #555;
   margin-bottom: 1rem;
-  font-size: 0.95rem;
 }
 
 .requirements h4 {
-  margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
-  color: #333;
-}
-
-.requirements ul {
-  list-style: disc;
-  margin-left: 1.2rem;
-  margin-bottom: 0.8rem;
-}
-
-.requirements li {
-  font-size: 0.9rem;
-  color: #666;
   margin-bottom: 0.3rem;
 }
 
-.more-reqs {
-  color: #2196f3;
-  text-decoration: underline;
+.requirements ul {
+  padding-left: 1.2rem;
   font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.more-reqs {
+  font-size: 0.85rem;
+  color: #2196f3;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .card-footer {
-  padding: 1rem;
-  background: #f8f9fa;
-  border-top: 1px solid #eee;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-top: auto;
 }
 
 .meta {
+  font-size: 0.8rem;
+  color: #666;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.date {
-  font-weight: 500;
-}
-
-.beneficiaries {
-  font-size: 0.75rem;
+  gap: 0.2rem;
 }
 
 .actions {
@@ -192,7 +201,7 @@
   background: #2196f3;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -202,10 +211,18 @@
   background: #4caf50;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
+}
+
+.btn-view:hover {
+  background: #1976d2;
+}
+
+.btn-solicitar:hover {
+  background: #388e3c;
 }
 
 /* Modal */
@@ -220,6 +237,7 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .modal {
@@ -230,6 +248,7 @@
   max-width: 90%;
   overflow: hidden;
   animation: modalAppear 0.3s ease-out;
+  position: relative;
 }
 
 @keyframes modalAppear {
@@ -272,23 +291,20 @@
   padding: 1.2rem;
 }
 
-.modal-body p {
-  margin: 0.5rem 0;
-}
-
-.form-group {
+.modal-form .form-group {
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
 }
 
-.form-group label {
-  display: block;
-  font-size: 0.95rem;
+.modal-form label {
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
   color: #333;
-  margin-bottom: 0.5rem;
 }
 
-.form-group textarea {
-  width: 100%;
+.modal-form select,
+.modal-form textarea {
   padding: 0.6rem;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -303,23 +319,26 @@
   border-top: 1px solid #eee;
 }
 
-.btn-secundario, .btn-primario {
-  padding: 0.6rem 1.2rem;
+.btn-secundario {
+  background: #666;
+  color: white;
   border: none;
+  padding: 0.6rem 1.2rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
   font-size: 0.95rem;
 }
 
-.btn-secundario {
-  background: #666;
-  color: white;
-}
-
 .btn-primario {
   background: #4caf50;
   color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
 }
 
 .btn-primario:hover {
@@ -328,9 +347,15 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .categorias-container {
+  .becas-contenido {
     margin-left: 60px;
     padding: 1rem;
+  }
+
+  .btn-solicitud-general {
+    position: static;
+    width: 100%;
+    margin-bottom: 1rem;
   }
 
   .filters-container {
@@ -338,8 +363,8 @@
     gap: 0.5rem;
   }
 
-  .card {
-    min-width: 280px;
+  .cards-container {
+    grid-template-columns: 1fr;
   }
 
   .modal {

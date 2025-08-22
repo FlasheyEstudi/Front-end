@@ -5,17 +5,28 @@ import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators } 
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/auth';
 
+interface Beca {
+  Id: number;
+  Nombre: string;
+  FechaInicio: string;
+  FechaFin: string;
+  Activa: boolean;
+}
+
 interface Estudiante {
   Id: number;
   Nombre: string;
   Apellido: string;
   Edad: number;
   Correo: string;
-  EstadoId: number;
-  CarreraId: number;
-  FechaRegistro?: string;
-  estadoNombre?: string;
-  carreraNombre?: string;
+  EstadoId?: number;
+  CarreraId?: number;
+  FechaRegistro: string;
+  EstadoNombre?: string;
+  CarreraNombre?: string;
+  becas?: Beca[];
+  Carnet?: string;
+  Telefono?: string;
 }
 
 interface Estado { Id: number; Nombre: string; }
@@ -34,10 +45,21 @@ export class PerfilComponent implements OnInit {
   error = '';
   estadosDisponibles: Estado[] = [];
   carrerasDisponibles: Carrera[] = [];
+
   form: FormGroup;
   changePasswordLoading = false;
   passwordError = '';
   passwordSuccess = '';
+
+  editMode = false;
+  editForm: FormGroup;
+  editLoading = false;
+  editError = '';
+  editSuccess = '';
+
+  showToast: boolean = false;
+  toastMessage: string = '';
+  toastType: 'success' | 'error' = 'success';
 
   private estudianteId: number | null = null;
   private baseUrl = 'http://localhost:3000/api-beca';
@@ -53,6 +75,17 @@ export class PerfilComponent implements OnInit {
       newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmNewPassword: ['', [Validators.required]]
     }, { validators: this.passwordsMatch });
+
+    this.editForm = this.fb.group({
+      Nombre: ['', [Validators.required]],
+      Apellido: ['', [Validators.required]],
+      Edad: ['', [Validators.required, Validators.min(1)]],
+      Correo: [{ value: '', disabled: true }, [Validators.required, Validators.email]],
+      EstadoId: [null, [Validators.required]],
+      CarreraId: [null, [Validators.required]],
+      Carnet: [''],
+      Telefono: ['']
+    });
   }
 
   passwordsMatch(group: FormGroup) {
@@ -62,56 +95,45 @@ export class PerfilComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    console.log('🔄 Iniciando componente de perfil...');
-    
-    // ✅ Verificar autenticación usando el servicio
     if (!this.authService.isLoggedIn()) {
-      this.error = '❌ No hay sesión activa.';
       this.router.navigate(['/login']);
       return;
     }
 
     const currentUser = this.authService.getCurrentUser();
-    
     if (!currentUser) {
-      this.error = '❌ Token inválido. Inicia sesión nuevamente.';
       this.authService.logout();
       this.router.navigate(['/login']);
       return;
     }
 
-    console.log('👤 Usuario autenticado:', currentUser);
     this.mapearEstudianteId(currentUser.id);
     this.cargarEstadosYCarreras();
   }
 
+  trackByBecaId(index: number, beca: Beca): number {
+    return beca?.Id ?? index;
+  }
+
   private mapearEstudianteId(userId: number): void {
     this.loading = true;
-    this.error = '';
     const headers = this.getHeaders();
 
-    console.log(`🔍 Intentando mapear usuario ${userId} a estudiante...`);
-
-    // 1. Primero intentar con el endpoint de mapeo
     this.http.get<{ estudianteId: number }>(
       `${this.baseUrl}/estudiante/mapa-id?userId=${userId}`,
       { headers }
     ).subscribe({
       next: (response) => {
         this.estudianteId = response.estudianteId;
-        console.log('✅ EstudianteId asociado via mapa-id:', this.estudianteId);
-
         if (this.estudianteId && this.estudianteId > 0) {
           this.cargarPerfil();
         } else {
-          this.error = '❌ No se encontró un estudiante asociado a tu cuenta.';
           this.loading = false;
+          this.error = 'No se encontró el ID del estudiante.';
         }
       },
-      error: (err: HttpErrorResponse) => {
-        console.warn('⚠️ Endpoint mapa-id no disponible, intentando por email...', err.message);
-        
-        // 2. Si falla el endpoint de mapeo, intentar por email
+      error: (err) => {
+        console.error('Error mapeando estudiante ID:', err);
         this.cargarEstudiantePorEmail();
       }
     });
@@ -119,93 +141,88 @@ export class PerfilComponent implements OnInit {
 
   private cargarEstudiantePorEmail(): void {
     const userEmail = this.authService.getEmail();
-    console.log('📧 Buscando estudiante por email:', userEmail);
-    
     if (!userEmail) {
-      this.error = '❌ No se puede determinar el correo del usuario.';
       this.loading = false;
+      this.error = 'No se pudo obtener el email del usuario.';
       return;
     }
 
-    // Buscar todos los estudiantes y filtrar por email
     this.http.get<Estudiante[]>(
       `${this.baseUrl}/estudiante`,
       { headers: this.getHeaders() }
     ).subscribe({
       next: (estudiantes) => {
-        if (estudiantes && estudiantes.length > 0) {
-          // Filtrar por email (case insensitive)
-          const estudianteEncontrado = estudiantes.find(e => 
-            e.Correo && e.Correo.toLowerCase() === userEmail.toLowerCase()
-          );
-          
-          if (estudianteEncontrado) {
-            this.estudianteId = estudianteEncontrado.Id;
-            console.log('✅ Estudiante encontrado por email:', this.estudianteId);
-            this.cargarPerfil();
-          } else {
-            this.error = '❌ No se encontró un estudiante con tu correo electrónico.';
-            this.loading = false;
-          }
+        const estudianteEncontrado = estudiantes.find(e => 
+          e.Correo && e.Correo.toLowerCase() === userEmail.toLowerCase()
+        );
+        if (estudianteEncontrado) {
+          this.estudianteId = estudianteEncontrado.Id;
+          this.cargarPerfil();
         } else {
-          this.error = '❌ No hay estudiantes registrados en el sistema.';
           this.loading = false;
+          this.error = 'No se encontró el perfil del estudiante.';
         }
       },
-      error: (err: HttpErrorResponse) => {
-        console.error('❌ Error buscando estudiantes:', err);
-        this.error = '❌ Error al buscar tu perfil de estudiante.';
+      error: (err) => {
+        console.error('Error cargando estudiante por email:', err);
         this.loading = false;
+        this.error = 'Error al cargar el perfil del estudiante.';
       }
     });
   }
 
   private cargarPerfil(): void {
     if (!this.estudianteId || this.estudianteId <= 0) {
-      this.error = '❌ ID de estudiante no válido.';
       this.loading = false;
+      this.error = 'ID de estudiante inválido.';
       return;
     }
 
     this.loading = true;
     const url = `${this.baseUrl}/estudiante/${this.estudianteId}`;
-    const headers = this.getHeaders();
 
-    console.log(`📋 Cargando perfil del estudiante ${this.estudianteId}...`);
-
-    this.http.get<Estudiante>(url, { headers }).subscribe({
+    this.http.get<Estudiante>(url, { headers: this.getHeaders() }).subscribe({
       next: (data) => {
-        console.log('✅ Perfil cargado:', data);
-        this.estudiante = data;
+        this.estudiante = {
+          Id: data.Id,
+          Nombre: data.Nombre,
+          Apellido: data.Apellido,
+          Edad: data.Edad,
+          Correo: data.Correo,
+          EstadoId: data.EstadoId,
+          CarreraId: data.CarreraId,
+          FechaRegistro: data.FechaRegistro,
+          EstadoNombre: data.EstadoNombre,
+          CarreraNombre: data.CarreraNombre,
+          becas: data.becas || [],
+          Carnet: data.Carnet,
+          Telefono: data.Telefono
+        };
         this.loading = false;
+        this.editForm.patchValue({
+          Nombre: this.estudiante.Nombre,
+          Apellido: this.estudiante.Apellido,
+          Edad: this.estudiante.Edad,
+          Correo: this.estudiante.Correo,
+          EstadoId: this.estudiante.EstadoId ?? null,
+          CarreraId: this.estudiante.CarreraId ?? null,
+          Carnet: this.estudiante.Carnet ?? '',
+          Telefono: this.estudiante.Telefono ?? ''
+        });
       },
-      error: (err: HttpErrorResponse) => {
-        console.error('❌ Error al cargar perfil:', err);
-        if (err.status === 404) {
-          this.error = '❌ Perfil no encontrado.';
-        } else if (err.status === 401 || err.status === 403) {
-          this.error = '❌ Sesión expirada o no autorizada.';
-          this.authService.logout();
-          this.router.navigate(['/login']);
-        } else {
-          this.error = '❌ Error al cargar el perfil. Inténtalo más tarde.';
-        }
+      error: (err) => {
+        console.error('Error cargando perfil:', err);
         this.loading = false;
+        this.error = 'Error al cargar el perfil.';
       }
     });
   }
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
-    if (!token) {
-      console.warn('❌ No hay token en localStorage');
-      this.authService.logout();
-      this.router.navigate(['/login']);
-      return new HttpHeaders();
-    }
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      'Authorization': `Bearer ${token || ''}`
     });
   }
 
@@ -213,34 +230,28 @@ export class PerfilComponent implements OnInit {
     const headers = this.getHeaders();
 
     this.http.get<Estado[]>(`${this.baseUrl}/estado`, { headers })
-      .subscribe({
-        next: (data) => {
-          this.estadosDisponibles = Array.isArray(data) ? data : [];
-          console.log('✅ Estados cargados:', this.estadosDisponibles.length);
-        },
-        error: (err) => console.error('❌ Error cargando estados:', err)
+      .subscribe({ 
+        next: (data) => this.estadosDisponibles = data || [],
+        error: (err) => console.error('Error cargando estados:', err)
       });
 
     this.http.get<Carrera[]>(`${this.baseUrl}/carrera`, { headers })
-      .subscribe({
-        next: (data) => {
-          this.carrerasDisponibles = Array.isArray(data) ? data : [];
-          console.log('✅ Carreras cargadas:', this.carrerasDisponibles.length);
-        },
-        error: (err) => console.error('❌ Error cargando carreras:', err)
+      .subscribe({ 
+        next: (data) => this.carrerasDisponibles = data || [],
+        error: (err) => console.error('Error cargando carreras:', err)
       });
   }
 
   getEstadoNombre(estadoId?: number): string {
-    if (!estadoId) return 'Sin estado';
+    if (!estadoId) return this.estudiante?.EstadoNombre || 'No asignado';
     const estado = this.estadosDisponibles.find(e => e.Id === estadoId);
-    return estado?.Nombre || 'Sin estado';
+    return estado?.Nombre || this.estudiante?.EstadoNombre || 'No asignado';
   }
 
   getCarreraNombre(carreraId?: number): string {
-    if (!carreraId) return 'Sin carrera';
+    if (!carreraId) return this.estudiante?.CarreraNombre || 'No asignada';
     const carrera = this.carrerasDisponibles.find(c => c.Id === carreraId);
-    return carrera?.Nombre || 'Sin carrera';
+    return carrera?.Nombre || this.estudiante?.CarreraNombre || 'No asignada';
   }
 
   cambiarContrasena(): void {
@@ -248,27 +259,143 @@ export class PerfilComponent implements OnInit {
     this.passwordSuccess = '';
     
     if (this.form.invalid) {
-      this.passwordError = '❌ Por favor, completa correctamente todos los campos.';
+      this.form.markAllAsTouched();
+      if (this.form.hasError('notMatching')) {
+        this.passwordError = 'Las nuevas contraseñas no coinciden';
+      } else {
+        this.passwordError = 'Por favor, corrige los errores del formulario';
+      }
+      this.showToastMessage(this.passwordError, 'error');
       return;
     }
 
     const { currentPassword, newPassword } = this.form.value;
     this.changePasswordLoading = true;
 
-    this.http.post(
-      `${this.baseUrl}/auth/change-password`, 
-      { currentPassword, newPassword }, 
-      { headers: this.getHeaders() }
-    ).subscribe({
-      next: () => {
-        this.passwordSuccess = '✅ Contraseña actualizada correctamente.';
+    this.authService.changePassword(currentPassword, newPassword).subscribe({
+      next: (response) => {
+        this.passwordSuccess = response?.message || 'Contraseña cambiada exitosamente';
         this.form.reset();
         this.changePasswordLoading = false;
+        this.showToastMessage(this.passwordSuccess, 'success');
       },
-      error: (err: HttpErrorResponse) => {
-        this.passwordError = err.error?.message || '❌ No se pudo cambiar la contraseña.';
+      error: (err) => {
         this.changePasswordLoading = false;
+        let errorMessage = 'Error al cambiar la contraseña. Inténtalo de nuevo más tarde.';
+        if (err.status === 401) {
+          errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
+        } else if (err.status === 403) {
+          errorMessage = 'No tienes permiso para realizar esta acción.';
+        } else if (err.status === 400) {
+          errorMessage = err.error?.message || err.message || 'Datos de entrada inválidos.';
+        } else if (err.status === 404) {
+          errorMessage = 'Usuario no encontrado.';
+        } else {
+          errorMessage = err.error?.message || err.message || errorMessage;
+        }
+        this.passwordError = errorMessage;
+        this.showToastMessage(this.passwordError, 'error');
       }
     });
+  }
+
+  toggleEditMode(): void {
+    this.editMode = !this.editMode;
+    if (this.editMode && this.estudiante) {
+      this.editForm.patchValue({
+        Nombre: this.estudiante.Nombre,
+        Apellido: this.estudiante.Apellido,
+        Edad: this.estudiante.Edad,
+        Correo: this.estudiante.Correo,
+        EstadoId: this.estudiante.EstadoId ?? null,
+        CarreraId: this.estudiante.CarreraId ?? null,
+        Carnet: this.estudiante.Carnet ?? '',
+        Telefono: this.estudiante.Telefono ?? ''
+      });
+    } else if (this.estudiante) {
+      this.editForm.reset({
+        Nombre: this.estudiante.Nombre,
+        Apellido: this.estudiante.Apellido,
+        Edad: this.estudiante.Edad,
+        Correo: this.estudiante.Correo,
+        EstadoId: this.estudiante.EstadoId ?? null,
+        CarreraId: this.estudiante.CarreraId ?? null,
+        Carnet: this.estudiante.Carnet ?? '',
+        Telefono: this.estudiante.Telefono ?? ''
+      });
+    }
+    this.editError = '';
+    this.editSuccess = '';
+  }
+
+  cancelarEdicion(): void {
+    this.editMode = false;
+    if (this.estudiante) {
+      this.editForm.reset({
+        Nombre: this.estudiante.Nombre,
+        Apellido: this.estudiante.Apellido,
+        Edad: this.estudiante.Edad,
+        Correo: this.estudiante.Correo,
+        EstadoId: this.estudiante.EstadoId ?? null,
+        CarreraId: this.estudiante.CarreraId ?? null,
+        Carnet: this.estudiante.Carnet ?? '',
+        Telefono: this.estudiante.Telefono ?? ''
+      });
+    }
+    this.editError = '';
+    this.editSuccess = '';
+  }
+
+  guardarCambios(): void {
+    if (this.editForm.invalid || !this.estudianteId) {
+      this.editError = 'Por favor, corrige los errores del formulario.';
+      this.showToastMessage(this.editError, 'error');
+      return;
+    }
+
+    this.editLoading = true;
+    this.editError = '';
+    this.editSuccess = '';
+    
+    const updatedEstudiante: Partial<Estudiante> = this.editForm.value;
+    const { Nombre, Apellido, Edad, EstadoId, CarreraId, Carnet, Telefono } = updatedEstudiante;
+    
+    if (!Nombre || !Apellido || Edad === null || Edad === undefined || EstadoId === null || CarreraId === null) {
+      this.editError = 'Todos los campos obligatorios deben estar completos.';
+      this.editLoading = false;
+      this.showToastMessage(this.editError, 'error');
+      return;
+    }
+    
+    this.http.put(
+      `${this.baseUrl}/estudiante/${this.estudianteId}`, 
+      { Nombre, Apellido, Edad, EstadoId, CarreraId, Carnet, Telefono }, 
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: (response: any) => {
+        this.editLoading = false;
+        this.editMode = false;
+        this.editSuccess = 'Perfil actualizado correctamente.';
+        this.showToastMessage(this.editSuccess, 'success');
+        this.cargarPerfil();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error guardando cambios:', err);
+        this.editLoading = false;
+        this.editError = err.error?.message || err.message || 'Error al actualizar el perfil.';
+        this.showToastMessage(this.editError, 'error');
+      }
+    });
+  }
+
+  showToastMessage(message: string, type: 'success' | 'error' = 'success') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToast = true;
+    setTimeout(() => { this.showToast = false; }, 5000);
+  }
+
+  closeToast() {
+    this.showToast = false;
   }
 }

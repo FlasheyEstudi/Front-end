@@ -12,8 +12,8 @@ export interface Estudiante {
   Apellido: string;
   Edad: number;
   Correo: string;
-  EstadoId?: number;  // Hacer opcional
-  CarreraId?: number; // Hacer opcional
+  EstadoId?: number;
+  CarreraId?: number;
   FechaRegistro: string;
   EstadoNombre?: string;
   CarreraNombre?: string;
@@ -56,19 +56,17 @@ export class EstudianteService {
   /**
    * Obtiene las cabeceras con el token de autorización
    */
-  private getHeaders(includeAuth: boolean = true): HttpHeaders {
-    let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
-    });
-    
-    if (includeAuth) {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        headers = headers.set('Authorization', `Bearer ${token}`);
-      }
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[EstudianteService] Token no encontrado, redirigiendo a login');
+      this.router.navigate(['/login']);
+      throw new Error('No se encontró el token de autorización');
     }
-    
-    return headers;
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
   }
 
   /**
@@ -90,14 +88,8 @@ export class EstudianteService {
    * Crea un nuevo estudiante
    */
   async createEstudiante(data: any): Promise<CreateEstudianteResponse> {
-    const headers = this.getHeaders();
-    // Verificar si hay token antes de enviar
-    if (!headers.has('Authorization')) {
-      throw new Error('No se encontró el token de autorización');
-    }
-    
     return await lastValueFrom(
-      this.http.post<CreateEstudianteResponse>(this.apiUrl, data, { headers })
+      this.http.post<CreateEstudianteResponse>(this.apiUrl, data, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<CreateEstudianteResponse>('createEstudiante'))
         )
@@ -108,9 +100,8 @@ export class EstudianteService {
    * Obtiene todos los estudiantes
    */
   async getAllEstudiantes(): Promise<Estudiante[]> {
-    const headers = this.getHeaders();
     return await lastValueFrom(
-      this.http.get<Estudiante[]>(this.apiUrl, { headers })
+      this.http.get<Estudiante[]>(this.apiUrl, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<Estudiante[]>('getAllEstudiantes'))
         )
@@ -121,9 +112,8 @@ export class EstudianteService {
    * Obtiene un estudiante por ID
    */
   async getEstudianteById(id: number): Promise<Estudiante> {
-    const headers = this.getHeaders();
     return await lastValueFrom(
-      this.http.get<Estudiante>(`${this.apiUrl}/${id}`, { headers })
+      this.http.get<Estudiante>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<Estudiante>('getEstudianteById'))
         )
@@ -134,14 +124,8 @@ export class EstudianteService {
    * Actualiza un estudiante
    */
   async updateEstudiante(id: number, data: any): Promise<Estudiante> {
-    const headers = this.getHeaders();
-    // Verificar si hay token antes de enviar
-    if (!headers.has('Authorization')) {
-      throw new Error('No se encontró el token de autorización');
-    }
-    
     return await lastValueFrom(
-      this.http.put<Estudiante>(`${this.apiUrl}/${id}`, data, { headers })
+      this.http.put<Estudiante>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<Estudiante>('updateEstudiante'))
         )
@@ -152,14 +136,8 @@ export class EstudianteService {
    * Elimina un estudiante
    */
   async eliminarEstudiante(id: number): Promise<any> {
-    const headers = this.getHeaders();
-    // Verificar si hay token antes de enviar
-    if (!headers.has('Authorization')) {
-      throw new Error('No se encontró el token de autorización');
-    }
-    
     return await lastValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/${id}`, { headers })
+      this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<any>('eliminarEstudiante'))
         )
@@ -170,9 +148,8 @@ export class EstudianteService {
    * Obtiene todos los estados
    */
   async getAllEstados(): Promise<Estado[]> {
-    const headers = this.getHeaders();
     return await lastValueFrom(
-      this.http.get<Estado[]>(this.estadoUrl, { headers })
+      this.http.get<Estado[]>(this.estadoUrl, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<Estado[]>('getAllEstados'))
         )
@@ -183,9 +160,8 @@ export class EstudianteService {
    * Obtiene todas las carreras
    */
   async getAllCarreras(): Promise<Carrera[]> {
-    const headers = this.getHeaders();
     return await lastValueFrom(
-      this.http.get<Carrera[]>(this.carreraUrl, { headers })
+      this.http.get<Carrera[]>(this.carreraUrl, { headers: this.getHeaders() })
         .pipe(
           catchError(this.handleError<Carrera[]>('getAllCarreras'))
         )
@@ -205,12 +181,11 @@ export class EstudianteService {
    */
   async getEstudianteIdByUserId(userId: number): Promise<number> {
     try {
-      const headers = this.getHeaders(false); // No requerir auth para este endpoint
       const response = await lastValueFrom(
         this.http.get<{ estudianteId: number }>(
           `${this.apiUrl}/mapa-id`,
           {
-            headers,
+            headers: this.getHeaders(),
             params: { userId: userId.toString() }
           }
         ).pipe(

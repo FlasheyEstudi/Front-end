@@ -1,24 +1,255 @@
-<div class="perfil-container">
-  <h2>Perfil del Estudiante</h2>
-  <div *ngIf="loading">Cargando...</div>
-  <div *ngIf="error" class="error">{{ error }}</div>
-
-  <div *ngIf="estudiante">
-    <p><strong>Nombre:</strong> {{ estudiante.Nombre }} {{ estudiante.Apellido }}</p>
-    <p><strong>Correo:</strong> {{ estudiante.Correo }}</p>
-    <p><strong>Edad:</strong> {{ estudiante.Edad }}</p>
-    <p><strong>Estado:</strong> {{ getEstadoNombre(estudiante.EstadoId) }}</p>
-    <p><strong>Carrera:</strong> {{ getCarreraNombre(estudiante.CarreraId) }}</p>
+<div class="estudiantes-contenido">
+  <div *ngIf="showToast" class="toast toast-{{ toastType }}">
+    {{ toastMessage }}
+    <button class="toast-close" (click)="closeToast()">&times;</button>
   </div>
 
-  <h3>Cambiar Contraseña</h3>
-  <form [formGroup]="form" (ngSubmit)="cambiarContrasena()">
-    <input type="password" formControlName="currentPassword" placeholder="Contraseña actual">
-    <input type="password" formControlName="newPassword" placeholder="Nueva contraseña">
-    <input type="password" formControlName="confirmNewPassword" placeholder="Confirmar nueva contraseña">
-    <div *ngIf="form.errors?.['notMatching']" class="error">Las contraseñas no coinciden.</div>
-    <div class="error" *ngIf="passwordError">{{ passwordError }}</div>
-    <div class="success" *ngIf="passwordSuccess">{{ passwordSuccess }}</div>
-    <button type="submit" [disabled]="changePasswordLoading">Cambiar Contraseña</button>
-  </form>
+  <div class="page-header">
+    <div>
+      <h1>Gestiona tu información personal y académica</h1>
+      <p>Actualiza tus datos y gestiona tu contraseña de forma segura.</p>
+    </div>
+    <button class="btn-nuevo" (click)="toggleEditMode()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true">
+        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.38-2.829-2.827z" />
+      </svg>
+      {{ editMode ? 'Cancelar Edición' : 'Editar Perfil' }}
+    </button>
+  </div>
+
+  <div class="profile-grid">
+    <!-- Columna principal -->
+    <div class="profile-main-column">
+      <!-- Información Personal -->
+      <div class="info-card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+          </svg>
+          <h3>Información Personal</h3>
+        </div>
+        <div *ngIf="loading" class="loading-message">Cargando perfil...</div>
+        <div *ngIf="error" class="error-message">{{ error }}</div>
+
+        <!-- Vista de solo lectura -->
+        <div *ngIf="estudiante && !editMode" class="info-details-grid">
+          <div class="info-group">
+            <label>Nombre</label>
+            <div class="info-value">{{ estudiante.Nombre }} {{ estudiante.Apellido }}</div>
+          </div>
+          <div class="info-group">
+            <label>Edad</label>
+            <div class="info-value">{{ estudiante.Edad }} años</div>
+          </div>
+          <div class="info-group">
+            <label>Estado</label>
+            <div class="info-value">{{ estudiante.EstadoNombre || getEstadoNombre(estudiante.EstadoId) }}</div>
+          </div>
+          <div class="info-group">
+            <label>Carrera</label>
+            <div class="info-value">{{ estudiante.CarreraNombre || getCarreraNombre(estudiante.CarreraId) }}</div>
+          </div>
+          <div class="info-group full-width">
+            <label>Correo Electrónico</label>
+            <div class="info-value">{{ estudiante.Correo }}</div>
+          </div>
+          <div class="info-group">
+            <label>Número de Carnet</label>
+            <div class="info-value">{{ estudiante.Carnet || 'No disponible' }}</div>
+          </div>
+          <div class="info-group">
+            <label>Teléfono</label>
+            <div class="info-value">{{ estudiante.Telefono || 'No disponible' }}</div>
+          </div>
+          <div class="info-group">
+            <label>Fecha de Registro</label>
+            <div class="info-value">{{ estudiante.FechaRegistro | date:'dd/MM/yyyy' }}</div>
+          </div>
+        </div>
+
+        <!-- Formulario de edición -->
+        <form *ngIf="estudiante && editMode" [formGroup]="editForm" (ngSubmit)="guardarCambios()" class="edit-form">
+          <div class="info-details-grid">
+            <div class="form-group">
+              <label for="nombre">Nombre *</label>
+              <input id="nombre" type="text" formControlName="Nombre" required>
+              <div *ngIf="editForm.get('Nombre')?.invalid && editForm.get('Nombre')?.touched" class="text-danger">
+                Nombre es requerido.
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="apellido">Apellido *</label>
+              <input id="apellido" type="text" formControlName="Apellido" required>
+              <div *ngIf="editForm.get('Apellido')?.invalid && editForm.get('Apellido')?.touched" class="text-danger">
+                Apellido es requerido.
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="edad">Edad *</label>
+              <input id="edad" type="number" formControlName="Edad" min="1" required>
+              <div *ngIf="editForm.get('Edad')?.invalid && editForm.get('Edad')?.touched" class="text-danger">
+                Edad válida es requerida.
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="estado">Estado *</label>
+              <select id="estado" formControlName="EstadoId" required>
+                <option value="">Seleccione estado</option>
+                <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">{{ estado.Nombre }}</option>
+              </select>
+              <div *ngIf="editForm.get('EstadoId')?.invalid && editForm.get('EstadoId')?.touched" class="text-danger">
+                Estado es requerido.
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="carrera">Carrera *</label>
+              <select id="carrera" formControlName="CarreraId" required>
+                <option value="">Seleccione carrera</option>
+                <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">{{ carrera.Nombre }}</option>
+              </select>
+              <div *ngIf="editForm.get('CarreraId')?.invalid && editForm.get('CarreraId')?.touched" class="text-danger">
+                Carrera es requerida.
+              </div>
+            </div>
+            <div class="form-group full-width">
+              <label for="correo">Correo Electrónico</label>
+              <input id="correo" type="email" formControlName="Correo">
+            </div>
+            <div class="form-group">
+              <label for="carnet">Número de Carnet</label>
+              <input id="carnet" type="text" formControlName="Carnet">
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input id="telefono" type="text" formControlName="Telefono">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn-secundario" (click)="cancelarEdicion()">Cancelar</button>
+            <button type="submit" class="btn-primario" [disabled]="editForm.invalid || editLoading">
+              <span *ngIf="!editLoading">Guardar Cambios</span>
+              <div *ngIf="editLoading" class="loading-spinner"></div>
+            </button>
+          </div>
+          <div *ngIf="editError" class="error-message mt-3">{{ editError }}</div>
+          <div *ngIf="editSuccess" class="success-message mt-3">{{ editSuccess }}</div>
+        </form>
+      </div>
+
+      <!-- Historial de Becas -->
+      <div class="info-card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 3.414L16.586 7A2 2 0 0118 8.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm7 1.5V6a2 2 0 00-2-2H6v10l4-4 4 4V7.5L11 5.5z" clip-rule="evenodd" />
+          </svg>
+          <h3>Historial de Becas</h3>
+        </div>
+        <div class="scholarship-list" *ngIf="!estudiante?.becas?.length">
+          No hay becas registradas.
+        </div>
+        <div *ngFor="let beca of (estudiante?.becas || []); trackBy: trackByBecaId" class="scholarship-item">
+          <div>
+            <p class="scholarship-name">{{ beca?.Nombre || 'Nombre no disponible' }}</p>
+            <small class="scholarship-date">
+              {{ beca?.FechaInicio ? (beca.FechaInicio | date:'dd/MM/yyyy') : 'Fecha inicio no disponible' }} -
+              {{ beca?.FechaFin ? (beca.FechaFin | date:'dd/MM/yyyy') : 'Fecha fin no disponible' }}
+            </small>
+          </div>
+          <span class="status-badge"
+                [class.active]="beca?.Activa"
+                [class.inactive]="beca && !beca.Activa">
+            {{ beca?.Activa ? 'Activa' : 'Finalizada' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Cambiar Contraseña -->
+      <div class="info-card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2h2a2 2 0 012 2v5a2 2 0 01-2 2H3a2 2 0 01-2-2v-5a2 2 0 012-2h2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+          </svg>
+          <h3>Cambiar Contraseña</h3>
+        </div>
+        <form [formGroup]="form" (ngSubmit)="cambiarContrasena()" class="password-change-form">
+          <div class="form-group">
+            <label for="currentPassword">Contraseña actual *</label>
+            <input id="currentPassword" type="password" formControlName="currentPassword" required>
+            <div *ngIf="form.get('currentPassword')?.invalid && form.get('currentPassword')?.touched" class="text-danger">
+              Contraseña actual es requerida.
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="newPassword">Nueva contraseña *</label>
+            <input id="newPassword" type="password" formControlName="newPassword" required minlength="8">
+            <div *ngIf="form.get('newPassword')?.invalid && form.get('newPassword')?.touched" class="text-danger">
+              <div *ngIf="form.get('newPassword')?.errors?.['required']">Nueva contraseña es requerida.</div>
+              <div *ngIf="form.get('newPassword')?.errors?.['minlength']">La nueva contraseña debe tener al menos 8 caracteres.</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword">Confirmar nueva contraseña *</label>
+            <input id="confirmNewPassword" type="password" formControlName="confirmNewPassword" required>
+            <div *ngIf="form.hasError('notMatching') && form.get('confirmNewPassword')?.touched" class="text-danger">
+              Las contraseñas no coinciden.
+            </div>
+          </div>
+          <div *ngIf="passwordError" class="error-message mt-3">{{ passwordError }}</div>
+          <div *ngIf="passwordSuccess" class="success-message mt-3">{{ passwordSuccess }}</div>
+          <div class="form-actions">
+            <button type="submit" [disabled]="form.invalid || changePasswordLoading" class="btn-primario">
+              <span *ngIf="!changePasswordLoading">Cambiar Contraseña</span>
+              <div *ngIf="changePasswordLoading" class="loading-spinner"></div>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Columna lateral -->
+    <div class="profile-sidebar-column">
+      <div class="profile-summary-card">
+        <div class="profile-avatar">
+          <div class="avatar-circle">
+            <span *ngIf="estudiante && estudiante.Nombre">{{ estudiante.Nombre.charAt(0) }}</span>
+            <ng-template #defaultAvatar>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="24" height="24" aria-hidden="true">
+                <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 110-6 3 3 0 010 6z" />
+              </svg>
+            </ng-template>
+          </div>
+        </div>
+        <h3 class="profile-name" *ngIf="estudiante">{{ estudiante.Nombre }} {{ estudiante.Apellido }}</h3>
+        <p class="profile-career" *ngIf="estudiante">{{ estudiante.CarreraNombre || getCarreraNombre(estudiante.CarreraId) }}</p>
+        <div class="profile-detail-box" *ngIf="estudiante?.Carnet">
+          <span>Carnet:</span>
+     <h3 class="profile-name">{{ estudiante?.Nombre }} {{ estudiante?.Apellido }}</h3>
+        </div>
+       <div class="profile-detail-box" *ngIf="estudiante?.Carnet">
+    <span>Carnet:</span>
+    <span>{{ estudiante?.Carnet }}</span>
+</div>
+      </div>
+
+      <div class="info-card">
+        <div class="card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" width="20" height="20" aria-hidden="true">
+            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+          </svg>
+          <h3>Información de Contacto</h3>
+        </div>
+        <div class="contact-info" *ngIf="estudiante">
+          <div class="contact-item">
+            <span class="contact-label">Email:</span>
+            <span class="contact-value">{{ estudiante.Correo }}</span>
+          </div>
+          <div class="contact-item">
+            <span class="contact-label">Teléfono:</span>
+            <span class="contact-value">{{ estudiante.Telefono || 'No disponible' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

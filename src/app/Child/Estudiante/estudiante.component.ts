@@ -1,3 +1,4 @@
+// src/app/Child/Estudiante/estudiante.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +23,7 @@ export class EstudianteComponent implements OnInit {
   // Modales
   showModal: boolean = false;
   showEditModal: boolean = false;
-  showCredentialsModal: boolean = false;
+  showCredentialsModal: boolean = false; // ✅ Agregado
 
   // Datos para modales
   nuevoEstudiante = {
@@ -47,8 +48,12 @@ export class EstudianteComponent implements OnInit {
     CarreraNombre: ''
   };
 
-  // Datos del modal de credenciales
-  credenciales = {
+  // ✅ Agregado: Objeto para credenciales
+  credenciales: {
+    usuario: string;
+    correo: string;
+    contrasena: string;
+  } = {
     usuario: '',
     correo: '',
     contrasena: ''
@@ -120,8 +125,11 @@ export class EstudianteComponent implements OnInit {
   calcularKPIs() {
     this.totalEstudiantes = this.estudiantes.length;
     this.estudiantesActivos = this.estudiantes.filter(e => e.EstadoId === 1).length;
-    this.edadPromedio = this.estudiantes.length > 0 
-      ? Math.round(this.estudiantes.reduce((sum, e) => sum + e.Edad, 0) / this.estudiantes.length)
+    
+    // Calcular edad promedio solo con estudiantes que tienen edad válida
+    const estudiantesConEdad = this.estudiantes.filter(e => e.Edad && e.Edad > 0);
+    this.edadPromedio = estudiantesConEdad.length > 0 
+      ? Math.round(estudiantesConEdad.reduce((sum, e) => sum + e.Edad, 0) / estudiantesConEdad.length)
       : 0;
   }
 
@@ -136,6 +144,26 @@ export class EstudianteComponent implements OnInit {
 
   abrirModalRegistro() { this.showModal = true; this.error = ''; }
   cerrarModalRegistro() { this.showModal = false; this.resetFormulario(); }
+
+  // ✅ Agregado: Método para abrir modal de credenciales
+  abrirModalCredenciales(usuario: string, correo: string, contrasena: string) {
+    this.credenciales = {
+      usuario: usuario,
+      correo: correo,
+      contrasena: contrasena
+    };
+    this.showCredentialsModal = true;
+  }
+
+  // ✅ Agregado: Método para cerrar modal de credenciales
+  cerrarModalCredenciales() {
+    this.showCredentialsModal = false;
+    this.credenciales = {
+      usuario: '',
+      correo: '',
+      contrasena: ''
+    };
+  }
 
   editarEstudiante(id: number) {
     const estudiante = this.estudiantes.find(e => e.Id === id);
@@ -199,10 +227,9 @@ export class EstudianteComponent implements OnInit {
     this.error = '';
   }
 
-  // 🔹 Nuevo: Crear estudiante y mostrar modal de credenciales
   async onSubmitNewStudent() {
     if (!this.validarEstudiante()) return;
-
+    
     this.loading = true;
     try {
       const estudianteData = {
@@ -210,24 +237,26 @@ export class EstudianteComponent implements OnInit {
         Apellido: this.nuevoEstudiante.Apellido,
         Edad: this.nuevoEstudiante.Edad,
         Correo: this.nuevoEstudiante.Correo,
-        EstadoId: this.nuevoEstudiante.EstadoId ?? undefined,
-        CarreraId: this.nuevoEstudiante.CarreraId ?? undefined
+        EstadoId: this.nuevoEstudiante.EstadoId !== null ? this.nuevoEstudiante.EstadoId : undefined,
+        CarreraId: this.nuevoEstudiante.CarreraId !== null ? this.nuevoEstudiante.CarreraId : undefined,
+        Role: 'estudiante' // Agregar rol por defecto
       };
 
-      // Generar usuario y contraseña aleatoria
-      const usuario = this.nuevoEstudiante.Nombre.toLowerCase() + '.' + this.nuevoEstudiante.Apellido.toLowerCase();
-      const password = Math.random().toString(36).slice(-8); // contraseña de 8 caracteres
-
-      await this.estudianteService.createEstudiante({...estudianteData, Usuario: usuario, Contrasena: password});
+      const response = await this.estudianteService.createEstudiante(estudianteData);
       await this.cargarDatosIniciales();
+      
+      // ✅ Modificado: Usar el nuevo modal de credenciales
+      if (response.credenciales) {
+        this.abrirModalCredenciales(
+          response.credenciales.username,
+          this.nuevoEstudiante.Correo,
+          response.credenciales.password
+        );
+      } else {
+        this.showToastMessage('Estudiante creado correctamente', 'success');
+      }
+      
       this.cerrarModalRegistro();
-
-      // Mostrar modal de credenciales
-      this.credenciales = { usuario, correo: this.nuevoEstudiante.Correo, contrasena: password };
-      this.showCredentialsModal = true;
-
-      this.showToastMessage('Estudiante creado correctamente', 'success');
-
     } catch (err: any) {
       this.error = 'Error creando estudiante: ' + (err.error?.message || err.message);
       this.showToastMessage('Error al crear estudiante', 'error');
@@ -244,8 +273,8 @@ export class EstudianteComponent implements OnInit {
         Apellido: this.estudianteEdit.Apellido,
         Edad: this.estudianteEdit.Edad,
         Correo: this.estudianteEdit.Correo,
-        EstadoId: this.estudianteEdit.EstadoId ?? undefined,
-        CarreraId: this.estudianteEdit.CarreraId ?? undefined
+        EstadoId: this.estudianteEdit.EstadoId !== null ? this.estudianteEdit.EstadoId : undefined,
+        CarreraId: this.estudianteEdit.CarreraId !== null ? this.estudianteEdit.CarreraId : undefined
       };
 
       await this.estudianteService.updateEstudiante(this.estudianteEdit.Id, estudianteData);
@@ -256,22 +285,14 @@ export class EstudianteComponent implements OnInit {
       this.error = 'Error actualizando estudiante: ' + (err.error?.message || err.message);
       this.showToastMessage('Error al actualizar estudiante', 'error');
     } finally {
-            this.loading = false;
+      this.loading = false;
     }
   }
 
-  // Cerrar modal de credenciales
-  cerrarModalCredenciales() {
-    this.showCredentialsModal = false;
-    this.credenciales = { usuario: '', correo: '', contrasena: '' };
-  }
-
   // Toast
-  private showToastMessage(message: string, type: 'success' | 'error') {
-    this.toastMessage = message;
-    this.toastType = type;
-    this.showToast = true;
-    setTimeout(() => this.showToast = false, 3000);
+  copyToClipboard(text: string, type: string) { navigator.clipboard.writeText(text); }
+  showToastMessage(message: string, type: 'success'|'error' = 'success', isHtml=false) {
+    this.toastMessage = message; this.toastType = type; this.showToast = true;
+    setTimeout(() => { this.showToast = false; }, 10000);
   }
 }
-

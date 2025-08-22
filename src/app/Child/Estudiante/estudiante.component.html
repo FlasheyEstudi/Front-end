@@ -1,4 +1,7 @@
 <div class="estudiantes-contenido">
+  <!-- Toast flotante con HTML -->
+<div *ngIf="showToast" class="toast toast-{{ toastType }}" [innerHTML]="toastMessage">
+</div>
   <!-- Mensajes de error -->
   <div *ngIf="error" class="form-group error-message">
     <span class="error-icon">⚠️</span>

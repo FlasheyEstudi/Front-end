@@ -1,15 +1,11 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
-import { AuthService } from '../auth';
+import { AuthService } from './../auth';
 
-export const roleGuard: CanActivateFn = (
-  route: ActivatedRouteSnapshot,
-  state: RouterStateSnapshot
-) => {
+export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Verificar si el usuario está autenticado
   if (!authService.isLoggedIn()) {
     console.warn('Usuario no autenticado, redirigiendo a /login', { from: state.url });
     router.navigate(['/login'], { queryParams: { returnUrl: state.url } });

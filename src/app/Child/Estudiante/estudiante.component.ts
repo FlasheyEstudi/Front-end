@@ -46,7 +46,7 @@ export class EstudianteComponent implements OnInit {
   // Modales
   showModal: boolean = false;
   showEditModal: boolean = false;
-  
+
   // Datos para modales
   nuevoEstudiante = {
     Nombre: '',
@@ -73,6 +73,7 @@ export class EstudianteComponent implements OnInit {
   searchTerm: string = '';
   filtroEstado: string = '';
   filtroCarrera: string = '';
+
   carrerasDisponibles: Carrera[] = [];
   estadosDisponibles: Estado[] = [];
 
@@ -90,8 +91,7 @@ export class EstudianteComponent implements OnInit {
   private cargarDatosIniciales() {
     this.loading = true;
     this.error = '';
-    
-    // Cargar estados
+
     this.http.get<Estado[]>('http://localhost:3000/api-beca/estado')
       .subscribe({
         next: (estados) => {
@@ -107,7 +107,6 @@ export class EstudianteComponent implements OnInit {
   }
 
   private continuarCarga() {
-    // Cargar carreras
     this.http.get<Carrera[]>('http://localhost:3000/api-beca/carrera')
       .subscribe({
         next: (carreras) => {
@@ -123,7 +122,6 @@ export class EstudianteComponent implements OnInit {
   }
 
   private continuarCargaEstudiantes() {
-    // Cargar estudiantes
     this.http.get<any[]>('http://localhost:3000/api-beca/estudiante')
       .subscribe({
         next: (estudiantes) => {
@@ -145,7 +143,6 @@ export class EstudianteComponent implements OnInit {
       console.error('Datos de estudiantes no son un array:', data);
       return [];
     }
-    
     return data.map(item => {
       const estudiante: Estudiante = {
         Id: item.Id || item.id || 0,
@@ -182,7 +179,6 @@ export class EstudianteComponent implements OnInit {
   }
 
   getBecasActivas(estudianteId: number): string {
-    // Simulación de becas activas
     return Math.random() > 0.5 ? '1' : '';
   }
 
@@ -215,19 +211,16 @@ export class EstudianteComponent implements OnInit {
     return true;
   }
 
-  // Abrir modal de registro
   abrirModalRegistro() {
     this.showModal = true;
     this.error = '';
   }
 
-  // Cerrar modal de registro
   cerrarModalRegistro() {
     this.showModal = false;
     this.resetFormulario();
   }
 
-  // Abrir modal de edición
   editarEstudiante(id: number) {
     const estudiante = this.estudiantes.find(e => e.Id === id);
     if (estudiante) {
@@ -236,12 +229,10 @@ export class EstudianteComponent implements OnInit {
     }
   }
 
-  // Cerrar modal de edición
   cerrarModalEdicion() {
     this.showEditModal = false;
   }
 
-  // Función para copiar al portapapeles
   copyToClipboard(text: string, type: string) {
     navigator.clipboard.writeText(text).then(() => {
       this.showToastMessage(`${type} copiado al portapapeles`, 'success');
@@ -251,21 +242,40 @@ export class EstudianteComponent implements OnInit {
     });
   }
 
-  // Mostrar notificación toast
-  showToastMessage(message: string, type: 'success' | 'error' = 'success') {
+  showToastMessage(message: string, type: 'success' | 'error' = 'success', isHtml = false) {
     this.toastMessage = message;
     this.toastType = type;
     this.showToast = true;
-    
+
+    const container = document.createElement('div');
+    container.innerHTML = message;
+    const plainText = container.textContent || container.innerText || '';
+
     setTimeout(() => {
       this.showToast = false;
-    }, 3000);
+    }, 10000);
+
+    if (isHtml) {
+      setTimeout(() => {
+        const copyBtn = document.getElementById('copy-credentials-btn');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(plainText).then(() => {
+              this.showToastMessage('✅ Credenciales copiadas al portapapeles', 'success');
+            }).catch(err => {
+              console.error('Error al copiar:', err);
+              this.showToastMessage('❌ No se pudo copiar', 'error');
+            });
+          });
+        }
+      }, 100);
+    }
   }
 
   onSubmitNewStudent() {
     if (!this.validarEstudiante()) return;
     this.loading = true;
-    
+
     const dataEnviar = {
       Id: 0,
       Nombre: this.nuevoEstudiante.Nombre,
@@ -276,16 +286,39 @@ export class EstudianteComponent implements OnInit {
       CarreraId: this.nuevoEstudiante.CarreraId ? Number(this.nuevoEstudiante.CarreraId) : null,
     };
 
-    console.log('Enviando datos:', dataEnviar);
-
     this.http.post<any>('http://localhost:3000/api-beca/estudiante', dataEnviar)
       .subscribe({
         next: (response) => {
           console.log('Respuesta del servidor:', response);
-          
+
+          const cred = response.credenciales;
+          const est = response.estudiante;
+
+          const mensaje = `
+            <strong>🔐 Credenciales Generadas</strong><br><br>
+            <strong>📧 Correo:</strong> ${est.Correo}<br>
+            <strong>👤 Usuario:</strong> ${cred.username}<br>
+            <strong>🔑 Contraseña:</strong> ${cred.password}<br><br>
+            <button id="copy-credentials-btn" style="
+              background: #4caf50; 
+              color: white; 
+              border: none; 
+              padding: 6px 10px; 
+              border-radius: 4px; 
+              font-size: 0.8rem; 
+              cursor: pointer;">
+              📋 Copiar credenciales
+            </button>
+            <br><small style="color: #666; font-size: 0.8rem;">
+              <em>El estudiante debe cambiar la contraseña en su primer inicio de sesión.</em>
+            </small>
+          `;
+
+          this.showToastMessage(mensaje, 'success', true);
+
           this.resetFormulario();
-          this.cargarDatosIniciales();
           this.cerrarModalRegistro();
+          this.cargarDatosIniciales();
           this.loading = false;
         },
         error: (err) => {
@@ -299,7 +332,7 @@ export class EstudianteComponent implements OnInit {
   onSubmitEditStudent() {
     if (!this.validarEstudiante()) return;
     this.loading = true;
-    
+
     const dataEnviar = {
       Id: this.estudianteEdit.Id,
       Nombre: this.estudianteEdit.Nombre,
@@ -310,20 +343,15 @@ export class EstudianteComponent implements OnInit {
       CarreraId: this.estudianteEdit.CarreraId ? Number(this.estudianteEdit.CarreraId) : null,
     };
 
-    console.log('Enviando datos:', dataEnviar);
-
     this.http.put<any>(`http://localhost:3000/api-beca/estudiante/${this.estudianteEdit.Id}`, dataEnviar)
       .subscribe({
         next: (response) => {
           console.log('Respuesta del servidor:', response);
-          
-          // Actualizar el estudiante en la lista
           const index = this.estudiantes.findIndex(e => e.Id === this.estudianteEdit.Id);
           if (index !== -1) {
             this.estudiantes[index] = { ...this.estudianteEdit };
             this.filteredEstudiantes = [...this.estudiantes];
           }
-          
           this.cerrarModalEdicion();
           this.showToastMessage('Estudiante actualizado correctamente', 'success');
           this.loading = false;
@@ -336,14 +364,12 @@ export class EstudianteComponent implements OnInit {
       });
   }
 
-  // Generar nombre de usuario automáticamente
   private generateUsername(nombre: string, apellido: string): string {
     const firstLetter = nombre.charAt(0).toLowerCase();
     const formattedApellido = apellido.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     return `${firstLetter}${formattedApellido}`;
   }
 
-  // Generar contraseña automáticamente
   private generatePassword(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
     let password = '';

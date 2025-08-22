@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { lastValueFrom, catchError } from 'rxjs';
 import { ErrorService } from './error.service';
 
@@ -11,9 +11,14 @@ export class EstudianteService {
 
   constructor(private http: HttpClient, private error: ErrorService) {}
 
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('access_token');
+    return new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token || ''}` });
+  }
+
   createEstudiante(data: any): Promise<any> {
     return lastValueFrom(
-      this.http.post<any>(this.apiUrl, data).pipe(
+      this.http.post<any>(this.apiUrl, data, { headers: this.getHeaders() }).pipe(
         catchError(this.error.handleError)
       )
     );
@@ -21,7 +26,7 @@ export class EstudianteService {
 
   async getAllEstudiantes(): Promise<any[]> {
     return await lastValueFrom(
-      this.http.get<any[]>(this.apiUrl).pipe(
+      this.http.get<any[]>(this.apiUrl, { headers: this.getHeaders() }).pipe(
         catchError(this.error.handleError)
       )
     );
@@ -29,7 +34,7 @@ export class EstudianteService {
 
   async getEstudianteById(id: number): Promise<any> {
     return await lastValueFrom(
-      this.http.get<any>(`${this.apiUrl}/${id}`).pipe(
+      this.http.get<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
         catchError(this.error.handleError)
       )
     );
@@ -37,7 +42,7 @@ export class EstudianteService {
 
   async eliminarEstudiante(id: number): Promise<any> {
     return await lastValueFrom(
-      this.http.delete<any>(`${this.apiUrl}/${id}`).pipe(
+      this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() }).pipe(
         catchError(this.error.handleError)
       )
     );

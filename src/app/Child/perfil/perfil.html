@@ -1,0 +1,24 @@
+<div class="perfil-container">
+  <h2>Perfil del Estudiante</h2>
+  <div *ngIf="loading">Cargando...</div>
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <div *ngIf="estudiante">
+    <p><strong>Nombre:</strong> {{ estudiante.Nombre }} {{ estudiante.Apellido }}</p>
+    <p><strong>Correo:</strong> {{ estudiante.Correo }}</p>
+    <p><strong>Edad:</strong> {{ estudiante.Edad }}</p>
+    <p><strong>Estado:</strong> {{ getEstadoNombre(estudiante.EstadoId) }}</p>
+    <p><strong>Carrera:</strong> {{ getCarreraNombre(estudiante.CarreraId) }}</p>
+  </div>
+
+  <h3>Cambiar Contraseña</h3>
+  <form [formGroup]="form" (ngSubmit)="cambiarContrasena()">
+    <input type="password" formControlName="currentPassword" placeholder="Contraseña actual">
+    <input type="password" formControlName="newPassword" placeholder="Nueva contraseña">
+    <input type="password" formControlName="confirmNewPassword" placeholder="Confirmar nueva contraseña">
+    <div *ngIf="form.errors?.['notMatching']" class="error">Las contraseñas no coinciden.</div>
+    <div class="error" *ngIf="passwordError">{{ passwordError }}</div>
+    <div class="success" *ngIf="passwordSuccess">{{ passwordSuccess }}</div>
+    <button type="submit" [disabled]="changePasswordLoading">Cambiar Contraseña</button>
+  </form>
+</div>

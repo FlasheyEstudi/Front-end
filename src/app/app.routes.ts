@@ -157,15 +157,15 @@ export const routes: Routes = [
   },
 
   // Rutas para estudiantes (requieren rol 'estudiante') - Descomentar cuando estén listos
-  // {
-  //   path: 'perfil',
-  //   title: 'Perfil',
-  //   loadComponent: () =>
-  //     import('./Child/estudiantes/perfil/perfil.component')
-  //       .then(m => m.PerfilComponent),
-  //   canActivate: [authGuard, roleGuard],
-  //   data: { role: 'estudiante' }
-  // },
+  {
+     path: 'perfil',
+     title: 'Perfil',
+     loadComponent: () =>
+      import('./Child/perfil/perfil')
+        .then(m => m.PerfilComponent),
+   canActivate: [authGuard, roleGuard],
+    data: { role: 'estudiante' }
+  },
   // {
   //   path: 'becas-disponibles',
   //   title: 'Becas Disponibles',

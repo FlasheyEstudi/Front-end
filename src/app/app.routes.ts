@@ -1,4 +1,3 @@
-// src/app/routes.ts
 import { Routes } from '@angular/router';
 import { authGuard } from './../auth/guards/auth.guard';
 import { roleGuard } from './../auth/guards/role.guard';
@@ -33,6 +32,16 @@ export const routes: Routes = [
       import('./Child/dashboard/dashboard')
         .then(m => m.DashboardComponent),
     canActivate: [authGuard]
+  },
+
+  // ✅ RUTA DE PERFIL - SOLO REQUIERE AUTENTICACIÓN
+  {
+    path: 'perfil',
+    title: 'Perfil',
+    loadComponent: () =>
+      import('./Child/perfil/perfil')
+        .then(m => m.PerfilComponent),
+    canActivate: [authGuard] // Solo authGuard, sin roleGuard
   },
 
   // Rutas administrativas (requieren rol 'admin')

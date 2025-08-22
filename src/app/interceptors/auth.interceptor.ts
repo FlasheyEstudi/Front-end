@@ -3,29 +3,48 @@ import {
   HttpRequest,
   HttpHandler,
   HttpEvent,
-  HttpInterceptor
+  HttpInterceptor,
+  HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { AuthService } from '../../auth/auth';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor() {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Obtén el token de donde lo almacenas (localStorage, sessionStorage, un servicio de auth, etc.)
-    const authToken = localStorage.getItem('access_token'); // O 'jwt_token', o como lo hayas guardado
+    // Obtener token de autenticación
+    const authToken = localStorage.getItem('access_token');
 
-    // Si hay un token, clona la solicitud y añade el encabezado Authorization
+    // Clonar request y añadir headers de autorización si existe token
     if (authToken) {
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${authToken}` // ¡Importante el prefijo "Bearer "!
+          Authorization: `Bearer ${authToken}`
         }
       });
     }
 
-    // Pasa la solicitud (modificada o no) al siguiente manejador
-    return next.handle(request);
+    // Manejar errores de autenticación
+    return next.handle(request).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401 || error.status === 403) {
+          // Token expirado o no válido - hacer logout y redirigir
+          console.warn('🔐 Error de autenticación, redirigiendo a login');
+          this.authService.logout();
+          this.router.navigate(['/login'], { 
+            queryParams: { returnUrl: this.router.url } 
+          });
+        }
+        return throwError(error);
+      })
+    );
   }
 }

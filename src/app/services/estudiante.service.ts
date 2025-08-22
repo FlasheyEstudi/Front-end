@@ -13,7 +13,26 @@ export class EstudianteService {
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
-    return new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token || ''}` });
+    return new HttpHeaders({ 
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${token || ''}` 
+    });
+  }
+
+  // ✅ NUEVO: Obtener mapeo de usuario a estudiante
+  async getEstudianteIdByUserId(userId: number): Promise<number> {
+    try {
+      const response = await lastValueFrom(
+        this.http.get<{ estudianteId: number }>(
+          `${this.apiUrl}/mapa-id?userId=${userId}`,
+          { headers: this.getHeaders() }
+        )
+      );
+      return response.estudianteId;
+    } catch (error) {
+      console.warn('Error obteniendo mapeo usuario-estudiante:', error);
+      throw error;
+    }
   }
 
   createEstudiante(data: any): Promise<any> {
@@ -38,6 +57,11 @@ export class EstudianteService {
         catchError(this.error.handleError)
       )
     );
+  }
+
+  async getEstudianteByEmail(email: string): Promise<any> {
+    const todos = await this.getAllEstudiantes();
+    return todos.find((e: any) => e.Correo?.toLowerCase() === email.toLowerCase());
   }
 
   async eliminarEstudiante(id: number): Promise<any> {

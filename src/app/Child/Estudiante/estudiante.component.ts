@@ -22,6 +22,7 @@ export class EstudianteComponent implements OnInit {
   // Modales
   showModal: boolean = false;
   showEditModal: boolean = false;
+  showCredentialsModal: boolean = false;
 
   // Datos para modales
   nuevoEstudiante = {
@@ -44,6 +45,13 @@ export class EstudianteComponent implements OnInit {
     FechaRegistro: '',
     EstadoNombre: '',
     CarreraNombre: ''
+  };
+
+  // Datos del modal de credenciales
+  credenciales = {
+    usuario: '',
+    correo: '',
+    contrasena: ''
   };
 
   searchTerm: string = '';
@@ -191,9 +199,10 @@ export class EstudianteComponent implements OnInit {
     this.error = '';
   }
 
+  // 🔹 Nuevo: Crear estudiante y mostrar modal de credenciales
   async onSubmitNewStudent() {
     if (!this.validarEstudiante()) return;
-    
+
     this.loading = true;
     try {
       const estudianteData = {
@@ -201,14 +210,24 @@ export class EstudianteComponent implements OnInit {
         Apellido: this.nuevoEstudiante.Apellido,
         Edad: this.nuevoEstudiante.Edad,
         Correo: this.nuevoEstudiante.Correo,
-        EstadoId: this.nuevoEstudiante.EstadoId !== null ? this.nuevoEstudiante.EstadoId : undefined,
-        CarreraId: this.nuevoEstudiante.CarreraId !== null ? this.nuevoEstudiante.CarreraId : undefined
+        EstadoId: this.nuevoEstudiante.EstadoId ?? undefined,
+        CarreraId: this.nuevoEstudiante.CarreraId ?? undefined
       };
 
-      await this.estudianteService.createEstudiante(estudianteData);
+      // Generar usuario y contraseña aleatoria
+      const usuario = this.nuevoEstudiante.Nombre.toLowerCase() + '.' + this.nuevoEstudiante.Apellido.toLowerCase();
+      const password = Math.random().toString(36).slice(-8); // contraseña de 8 caracteres
+
+      await this.estudianteService.createEstudiante({...estudianteData, Usuario: usuario, Contrasena: password});
       await this.cargarDatosIniciales();
       this.cerrarModalRegistro();
+
+      // Mostrar modal de credenciales
+      this.credenciales = { usuario, correo: this.nuevoEstudiante.Correo, contrasena: password };
+      this.showCredentialsModal = true;
+
       this.showToastMessage('Estudiante creado correctamente', 'success');
+
     } catch (err: any) {
       this.error = 'Error creando estudiante: ' + (err.error?.message || err.message);
       this.showToastMessage('Error al crear estudiante', 'error');
@@ -225,8 +244,8 @@ export class EstudianteComponent implements OnInit {
         Apellido: this.estudianteEdit.Apellido,
         Edad: this.estudianteEdit.Edad,
         Correo: this.estudianteEdit.Correo,
-        EstadoId: this.estudianteEdit.EstadoId !== null ? this.estudianteEdit.EstadoId : undefined,
-        CarreraId: this.estudianteEdit.CarreraId !== null ? this.estudianteEdit.CarreraId : undefined
+        EstadoId: this.estudianteEdit.EstadoId ?? undefined,
+        CarreraId: this.estudianteEdit.CarreraId ?? undefined
       };
 
       await this.estudianteService.updateEstudiante(this.estudianteEdit.Id, estudianteData);
@@ -237,14 +256,22 @@ export class EstudianteComponent implements OnInit {
       this.error = 'Error actualizando estudiante: ' + (err.error?.message || err.message);
       this.showToastMessage('Error al actualizar estudiante', 'error');
     } finally {
-      this.loading = false;
+            this.loading = false;
     }
   }
 
+  // Cerrar modal de credenciales
+  cerrarModalCredenciales() {
+    this.showCredentialsModal = false;
+    this.credenciales = { usuario: '', correo: '', contrasena: '' };
+  }
+
   // Toast
-  copyToClipboard(text: string, type: string) { navigator.clipboard.writeText(text); }
-  showToastMessage(message: string, type: 'success'|'error' = 'success', isHtml=false) {
-    this.toastMessage = message; this.toastType = type; this.showToast = true;
-    setTimeout(() => { this.showToast = false; }, 10000);
+  private showToastMessage(message: string, type: 'success' | 'error') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToast = true;
+    setTimeout(() => this.showToast = false, 3000);
   }
 }
+

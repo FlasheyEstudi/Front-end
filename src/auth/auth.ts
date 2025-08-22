@@ -67,10 +67,12 @@ export class AuthService {
             };
           } else {
             localStorage.removeItem('access_token');
+            localStorage.removeItem('role');
           }
         } catch (e) {
           console.error('❌ Error decodificando token:', e);
           localStorage.removeItem('access_token');
+          localStorage.removeItem('role');
         }
       }
     }
@@ -83,12 +85,17 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
       tap(res => {
         if (isPlatformBrowser(this.platformId)) {
+          console.log('Saving token:', res.access_token); // Log para depuración
           localStorage.setItem('access_token', res.access_token);
+          localStorage.setItem('role', res.user.role);
         }
         this.currentUserSubject.next(res.user);
         this.router.navigate(['/dashboard']);
       }),
-      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el login')))
+      catchError(err => {
+        console.error('Login error:', err);
+        return throwError(() => new Error(err.error?.message || 'Error en el login'));
+      })
     );
   }
 
@@ -96,13 +103,17 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
       tap(res => {
         if (isPlatformBrowser(this.platformId)) {
+          console.log('Saving token after register:', res.access_token); // Log para depuración
           localStorage.setItem('access_token', res.access_token);
           localStorage.setItem('role', res.user.role);
           this.currentUserSubject.next(res.user);
           this.router.navigate(['/dashboard']);
         }
       }),
-      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el registro')))
+      catchError(err => {
+        console.error('Register error:', err);
+        return throwError(() => new Error(err.error?.message || 'Error en el registro'));
+      })
     );
   }
 
@@ -152,7 +163,10 @@ export class AuthService {
       'Authorization': `Bearer ${token}`
     });
     return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }, { headers }).pipe(
-      catchError(err => throwError(() => new Error(err.error?.message || 'Error al cambiar la contraseña')))
+      catchError(err => {
+        console.error('Change password error:', err);
+        return throwError(() => new Error(err.error?.message || 'Error al cambiar la contraseña'));
+      })
     );
   }
 

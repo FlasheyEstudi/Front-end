@@ -1,0 +1,45 @@
+.mis-solicitudes-container {
+  margin-left: 260px; /* espacio para el sidebar */
+  padding: 1.5rem;
+  min-height: 100vh; /* para que ocupe todo el alto de la pantalla */
+  background-color: #fbfbfb;
+
+  h2 {
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    color: #333;
+  }
+
+  .loading,
+  .error,
+  .no-data {
+    margin: 1rem 0;
+    font-weight: bold;
+    color: #ff4d4f;
+  }
+
+  .solicitudes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.5rem 1rem;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f0f0f0;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    tr:hover {
+      background-color: #e6f7ff;
+    }
+  }
+}

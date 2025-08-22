@@ -1,7 +1,8 @@
 <div class="estudiantes-contenido">
   <!-- Toast flotante con HTML -->
-<div *ngIf="showToast" class="toast toast-{{ toastType }}" [innerHTML]="toastMessage">
-</div>
+  <div *ngIf="showToast" class="toast toast-{{ toastType }}" [innerHTML]="toastMessage">
+  </div>
+
   <!-- Mensajes de error -->
   <div *ngIf="error" class="form-group error-message">
     <span class="error-icon">⚠️</span>
@@ -71,7 +72,7 @@
       </svg>
       Filtros
     </button>
-    <span class="filter-count">7 estudiantes</span>
+    <span class="filter-count">{{ filteredEstudiantes.length }} estudiantes</span>
   </div>
 
   <!-- Tabla de estudiantes -->
@@ -96,20 +97,25 @@
                 <div class="avatar">{{ estudiante.Nombre.charAt(0).toUpperCase() }}</div>
                 <div class="student-name">
                   <strong>{{ estudiante.Nombre }} {{ estudiante.Apellido }}</strong><br />
-                  <small>{{ getBecasActivas(estudiante.Id) }} beca activa</small>
+                  <small>{{ getBecasActivas(estudiante.Id) === '1' ? '1 beca activa' : getBecasActivas(estudiante.Id) + ' becas activas' }}</small>
                 </div>
               </div>
             </td>
             <td>{{ estudiante.Edad }} años</td>
             <td>
-              <div class="carrera-name">{{ getCarreraNombre(estudiante.CarreraId) }}</div>
+              <div class="carrera-name">{{ estudiante.CarreraNombre }}</div>
               <div class="carrera-programa">{{ getProgramaNombre(estudiante.CarreraId) }}</div>
             </td>
             <td>{{ estudiante.Correo }}</td>
-            <td>{{ estudiante.FechaRegistro | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <span *ngIf="estudiante.FechaRegistro; else noFecha">
+                {{ estudiante.FechaRegistro | date:'dd/MM/yyyy' }}
+              </span>
+              <ng-template #noFecha>No disponible</ng-template>
+            </td>
             <td>
               <span class="status-badge" [class.active]="estudiante.EstadoId === 1">
-                {{ getEstadoNombre(estudiante.EstadoId) }}
+                {{ estudiante.EstadoNombre }}
               </span>
             </td>
             <td>
@@ -166,7 +172,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="estado">Estado</label>
-              <select id="estado" [(ngModel)]="nuevoEstudiante.EstadoId" name="EstadoId">
+              <select id="estado" [(ngModel)]="nuevoEstudiante.EstadoId" name="EstadoId" required>
                 <option [ngValue]="undefined">Seleccione estado</option>
                 <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">
                   {{ estado.Nombre }}
@@ -175,7 +181,7 @@
             </div>
             <div class="form-group">
               <label for="carrera">Carrera</label>
-              <select id="carrera" [(ngModel)]="nuevoEstudiante.CarreraId" name="CarreraId">
+              <select id="carrera" [(ngModel)]="nuevoEstudiante.CarreraId" name="CarreraId" required>
                 <option [ngValue]="undefined">Seleccione carrera</option>
                 <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">
                   {{ carrera.Nombre }}
@@ -234,7 +240,7 @@
           <div class="form-row">
             <div class="form-group">
               <label for="estado">Estado</label>
-              <select id="estado" [(ngModel)]="estudianteEdit.EstadoId" name="EstadoId">
+              <select id="estado" [(ngModel)]="estudianteEdit.EstadoId" name="EstadoId" required>
                 <option [ngValue]="undefined">Seleccione estado</option>
                 <option *ngFor="let estado of estadosDisponibles" [value]="estado.Id">
                   {{ estado.Nombre }}
@@ -243,7 +249,7 @@
             </div>
             <div class="form-group">
               <label for="carrera">Carrera</label>
-              <select id="carrera" [(ngModel)]="estudianteEdit.CarreraId" name="CarreraId">
+              <select id="carrera" [(ngModel)]="estudianteEdit.CarreraId" name="CarreraId" required>
                 <option [ngValue]="undefined">Seleccione carrera</option>
                 <option *ngFor="let carrera of carrerasDisponibles" [value]="carrera.Id">
                   {{ carrera.Nombre }}

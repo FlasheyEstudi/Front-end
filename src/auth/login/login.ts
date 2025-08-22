@@ -12,12 +12,12 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.css']
 })
 export class LoginComponent {
-  identifier = ''; // Cambiado de correo a identifier para consistencia
+  identifier = ''; // Identificador (correo o nombre)
   password = '';
   error = '';
   loading = false;
   showPassword = false;
-  selectedRole = 'estudiante'; // Definido para los botones de rol
+  selectedRole = 'estudiante'; // Para los botones de rol
 
   constructor(
     private authService: AuthService,
@@ -37,14 +37,14 @@ export class LoginComponent {
       this.error = 'Por favor, complete todos los campos correctamente';
       return;
     }
-    
+
     this.loading = true;
     this.error = '';
 
     this.authService.login(this.identifier, this.password).subscribe({
       next: () => {
         this.loading = false;
-        localStorage.setItem('role', this.selectedRole); // Guardar rol seleccionado
+        localStorage.setItem('role', this.selectedRole);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

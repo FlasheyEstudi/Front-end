@@ -1,0 +1,36 @@
+<div class="mis-solicitudes-container">
+  <h2>Mis Solicitudes</h2>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">Cargando solicitudes...</div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error">{{ error }}</div>
+
+  <!-- Tabla de solicitudes -->
+  <table *ngIf="!loading && solicitudes.length > 0" class="solicitudes-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Tipo de Beca</th>
+        <th>Estado</th>
+        <th>Fecha de Solicitud</th>
+        <th>Monto</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let s of solicitudes">
+        <td>{{ s.Id }}</td>
+        <td>{{ s.BecaNombre }}</td>
+        <td>{{ s.EstadoNombre }}</td>
+        <td>{{ s.FechaSolicitud | date:'short' }}</td>
+        <td>{{ s.Monto || '-' }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Sin datos -->
+  <div *ngIf="!loading && solicitudes.length === 0" class="no-data">
+    No tienes solicitudes registradas.
+  </div>
+</div>

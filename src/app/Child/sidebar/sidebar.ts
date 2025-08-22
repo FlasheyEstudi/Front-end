@@ -1,4 +1,3 @@
-// src/app/Child/Sidebar/sidebar.ts
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -76,7 +75,7 @@ export class SidebarComponent implements OnInit {
       // Estudiantes
       { label: 'Perfil', icon: 'user', route: '/perfil', visible: this.userRole === 'estudiante' },
       { label: 'Becas Disponibles', icon: 'book', route: '/becas-disponibles', visible: this.userRole === 'estudiante' },
-      { label: 'Mis Solicitud', icon: 'clipboard-list', route: '/mis-solicitudes', visible: this.userRole === 'estudiante' }
+      { label: 'Mis Solicitudes', icon: 'clipboard-list', route: '/mis-solicitudes', visible: this.userRole === 'estudiante' }
     ].filter(item => item.visible);
   }
 

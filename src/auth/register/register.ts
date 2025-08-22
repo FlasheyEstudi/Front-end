@@ -1,4 +1,4 @@
-// src/auth/register/register.ts
+// src/auth/register/register.component.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService, RegisterUser } from '../auth';
@@ -25,25 +25,60 @@ export class RegisterComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
+  get passwordsMatch(): boolean {
+    return !this.ConfirmarContrasena || this.Contrasena === this.ConfirmarContrasena;
+  }
+
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
   }
 
-  onSubmit() {
-    if (!this.Nombre.trim()) { this.error = 'El nombre es requerido'; return; }
-    if (!this.Apellidos.trim()) { this.error = 'Los apellidos son requeridos'; return; }
-    if (!this.Correo.trim()) { this.error = 'El correo electrónico es requerido'; return; }
-    if (!this.Contrasena.trim() || this.Contrasena.length < 6) { this.error = 'La contraseña debe tener al menos 6 caracteres'; return; }
-    if (this.Contrasena !== this.ConfirmarContrasena) { this.error = 'Las contraseñas no coinciden'; return; }
+  onSubmit(event?: Event) {
+    if (event) event.preventDefault();
 
-    this.loading = true;
     this.error = '';
 
-    const user: RegisterUser = { Nombre: this.Nombre, Apellidos: this.Apellidos, Correo: this.Correo, Contrasena: this.Contrasena, Role: this.Role };
+    if (!this.Nombre.trim()) {
+      this.error = 'El nombre es requerido';
+      return;
+    }
+    if (!this.Apellidos.trim()) {
+      this.error = 'Los apellidos son requeridos';
+      return;
+    }
+    if (!this.Correo.trim()) {
+      this.error = 'El correo electrónico es requerido';
+      return;
+    }
+    if (!this.Contrasena.trim() || this.Contrasena.length < 6) {
+      this.error = 'La contraseña debe tener al menos 6 caracteres';
+      return;
+    }
+    if (this.Contrasena !== this.ConfirmarContrasena) {
+      this.error = 'Las contraseñas no coinciden';
+      return;
+    }
+
+    this.loading = true;
+
+    const user: RegisterUser = {
+      Nombre: this.Nombre,
+      Apellidos: this.Apellidos,
+      Correo: this.Correo,
+      Contrasena: this.Contrasena,
+      Role: this.Role
+    };
 
     this.authService.register(user).subscribe({
-      next: () => { this.loading = false; alert('Registro exitoso. Por favor inicia sesión.'); this.router.navigate(['/login']); },
-      error: err => { this.error = err.error?.message || 'Error al registrar usuario'; this.loading = false; }
+      next: () => {
+        this.loading = false;
+        alert('Registro exitoso. Por favor inicia sesión.');
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.loading = false;
+        this.error = err.error?.message || 'Error al registrar usuario. Intenta más tarde.';
+      }
     });
   }
 }

@@ -2,7 +2,9 @@
   <div class="register-card">
     <!-- Logo o ícono -->
     <div class="logo-container">
-      <div class="logo"></div>
+      <div class="logo">
+        <i class="fas fa-graduation-cap"></i>
+      </div>
     </div>
 
     <!-- Título principal -->
@@ -10,7 +12,7 @@
     <p class="subtitle">Completa tus datos para registrarte</p>
 
     <!-- Formulario -->
-    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form">
+    <form (ngSubmit)="onSubmit()" #registerForm="ngForm" class="register-form" novalidate>
       <!-- Mensajes de error o carga -->
       <div *ngIf="error" class="alert-message error-message">
         {{ error }}
@@ -101,7 +103,7 @@
         </div>
         <div *ngIf="registerForm.controls['Contrasena']?.invalid && (registerForm.controls['Contrasena']?.dirty || registerForm.controls['Contrasena']?.touched)" class="validation-error">
           <div *ngIf="registerForm.controls['Contrasena']?.errors?.['required']">La contraseña es obligatoria.</div>
-          <div *ngIf="registerForm.controls['Contrasena']?.errors?.['minlength']">La contraseña debe tener al menos 6 caracteres.</div>
+          <div *ngIf="registerForm.controls['Contrasena']?.errors?.['minlength']">Debe tener al menos 6 caracteres.</div>
         </div>
       </div>
 
@@ -123,8 +125,9 @@
             <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
           </span>
         </div>
-        <div *ngIf="registerForm.controls['ConfirmarContrasena']?.invalid && (registerForm.controls['ConfirmarContrasena']?.dirty || registerForm.controls['ConfirmarContrasena']?.touched)" class="validation-error">
-          <div *ngIf="registerForm.controls['ConfirmarContrasena']?.errors?.['required']">Por favor confirma tu contraseña.</div>
+        <!-- Validación manual de coincidencia -->
+        <div *ngIf="ConfirmarContrasena && Contrasena !== ConfirmarContrasena" class="validation-error">
+          Las contraseñas no coinciden.
         </div>
       </div>
 
@@ -141,7 +144,10 @@
       </div>
 
       <!-- Botón de registro -->
-      <button type="submit" [disabled]="loading || registerForm.invalid" class="btn-register">
+      <button 
+        type="submit" 
+        [disabled]="loading || registerForm.invalid || !passwordsMatch" 
+        class="btn-register">
         <i class="fas fa-user-plus"></i>
         {{ loading ? 'Registrando...' : 'Registrarse' }}
       </button>

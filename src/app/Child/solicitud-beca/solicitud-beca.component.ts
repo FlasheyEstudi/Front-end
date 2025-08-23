@@ -1,4 +1,3 @@
-// src/app/Child/solicitud-beca/solicitud-beca.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +20,15 @@ interface Solicitud {
   PeriodoAnioAcademico: string;
 }
 
+interface BackendResponse {
+  success: boolean;
+  data: {
+    solicitudes: Solicitud[];
+    tiposBeca: any[];
+    periodosAcademicos: any[];
+  };
+}
+
 @Component({
   selector: 'app-solicitud-beca',
   standalone: true,
@@ -32,20 +40,15 @@ export class SolicitudBecaComponent implements OnInit {
   solicitudes: Solicitud[] = [];
   tiposBeca: any[] = [];
   periodosAcademicos: any[] = [];
-
   searchTerm = '';
   estadoFiltro = '';
   becaFiltro = '';
   periodoFiltro = '';
-
-  // Contadores para KPIs
   totalSolicitudes = 0;
   aprobadas = 0;
   enRevision = 0;
   pendientes = 0;
   rechazadas = 0;
-
-  private apiUrl = 'http://localhost:3000/api-beca/solicitudbeca';
 
   constructor(private solicitudBecaService: SolicitudBecaService) {}
 
@@ -55,12 +58,11 @@ export class SolicitudBecaComponent implements OnInit {
 
   async cargarDatos() {
     try {
-      const response = await this.solicitudBecaService.getAllData().toPromise();
+      const response = await this.solicitudBecaService.getAllData().toPromise() as BackendResponse;
       if (response && response.success && response.data) {
-        const data = response.data;
-        this.solicitudes = data.solicitudes || [];
-        this.tiposBeca = data.tiposBeca || [];
-        this.periodosAcademicos = data.periodosAcademicos || [];
+        this.solicitudes = response.data.solicitudes || [];
+        this.tiposBeca = response.data.tiposBeca || [];
+        this.periodosAcademicos = response.data.periodosAcademicos || [];
         this.totalSolicitudes = this.solicitudes.length;
         this.aprobadas = this.solicitudes.filter(s => s.Estadonombre === 'Aprobado').length;
         this.enRevision = this.solicitudes.filter(s => s.Estadonombre === 'En Proceso').length;
@@ -74,8 +76,9 @@ export class SolicitudBecaComponent implements OnInit {
 
   get filteredSolicitudes() {
     return this.solicitudes.filter(solicitud => {
-      const matchesSearch = solicitud.EstudianteNombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                            solicitud.EstudianteApellido.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch =
+        solicitud.EstudianteNombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        solicitud.EstudianteApellido.toLowerCase().includes(this.searchTerm.toLowerCase());
       const matchesEstado = !this.estadoFiltro || solicitud.Estadonombre === this.estadoFiltro;
       const matchesBeca = !this.becaFiltro || solicitud.TipoBecaNombre === this.becaFiltro;
       const matchesPeriodo = !this.periodoFiltro || solicitud.PeriodoAcademicoNombre === this.periodoFiltro;
@@ -84,7 +87,9 @@ export class SolicitudBecaComponent implements OnInit {
   }
 
   onSearch() {}
+
   onFilterChange() {}
+
   getStatusClass(estado: string): string {
     switch (estado) {
       case 'Aprobado': return 'approved';
@@ -94,9 +99,11 @@ export class SolicitudBecaComponent implements OnInit {
       default: return 'default';
     }
   }
+
   getInitials(nombre: string): string {
     return nombre.charAt(0).toUpperCase();
   }
+
   verSolicitud(id: number) {
     console.log('Ver solicitud:', id);
   }

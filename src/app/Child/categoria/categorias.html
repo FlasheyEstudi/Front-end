@@ -14,11 +14,12 @@
   </button>
 
   <!-- KPIs -->
+  <!-- Asegúrate de que los valores se actualicen desde this.resumen -->
   <div class="kpi-grid">
     <div class="kpi-card blue">
       <div class="kpi-icon">🏷️</div>
       <div class="kpi-content">
-        <h2>4</h2>
+        <h2>{{ resumen.CategoriasConfiguradas }}</h2>
         <p>Categorías Configuradas</p>
         <small>Total</small>
       </div>
@@ -26,7 +27,7 @@
     <div class="kpi-card green">
       <div class="kpi-icon">👥</div>
       <div class="kpi-content">
-        <h2>313</h2>
+        <h2>{{ resumen.BeneficiariosTotales }}</h2>
         <p>Beneficiarios Totales</p>
         <small>Activos</small>
       </div>
@@ -34,7 +35,7 @@
     <div class="kpi-card red">
       <div class="kpi-icon">💰</div>
       <div class="kpi-content">
-        <h2>C$9,775,000.00</h2>
+        <h2>{{ resumen.PresupuestoTotal | currency:'NIO' }}</h2>
         <p>Presupuesto Total</p>
         <small>Asignado</small>
       </div>
@@ -42,11 +43,21 @@
     <div class="kpi-card purple">
       <div class="kpi-icon">📈</div>
       <div class="kpi-content">
-        <h2>3</h2>
+        <h2>{{ resumen.CategoriasActivas }}</h2>
         <p>Categorías Activas</p>
-        <small>de 4</small>
+        <small>de {{ resumen.CategoriasConfiguradas }}</small>
       </div>
     </div>
+  </div>
+
+  <!-- Indicador de carga -->
+  <div *ngIf="loading" class="loading-indicator">
+    Cargando...
+  </div>
+
+  <!-- Mensaje de error -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
   </div>
 
   <!-- Tabla de categorías -->
@@ -67,8 +78,9 @@
         </thead>
         <tbody>
           <tr *ngFor="let categoria of categorias">
+            <!-- Usar categoria.Categoria y categoria.ColorHex -->
             <td>
-              <div class="categoria-badge">
+              <div class="categoria-badge" [style.background-color]="categoria.ColorHex || '#ccc'">
                 <span class="badge-letter">{{ categoria.Categoria }}</span>
               </div>
             </td>
@@ -76,12 +88,13 @@
               <div class="categoria-name">{{ categoria.Nombre }}</div>
               <div class="categoria-description">{{ categoria.Descripcion }}</div>
             </td>
+            <!-- Usar categoria.PorcentajeCobertura -->
             <td>
               <div class="cobertura-badge">
-                {{ categoria.Cobertura }}%
+                {{ categoria.PorcentajeCobertura }}%
               </div>
             </td>
-            <td>{{ categoria.Monto | currency }}</td>
+            <td>{{ categoria.Monto | currency:'NIO' }}</td>
             <td>
               <div class="prioridad-badge">
                 Prioridad {{ categoria.Prioridad }}
@@ -96,11 +109,13 @@
               </span>
             </td>
             <td>
-              <button class="btn-action edit" (click)="editarCategoria(categoria.Id!)">✏️</button>
+              <!-- Corregido: Usar abrirModalEditar -->
+              <button class="btn-action edit" (click)="abrirModalEditar(categoria)" [disabled]="loading">✏️</button>
               <button class="btn-action delete" (click)="eliminarCategoria(categoria.Id!)" [disabled]="loading">🗑️</button>
             </td>
           </tr>
-          <tr *ngIf="categorias.length === 0">
+          <!-- Mostrar mensaje si no hay datos y no está cargando -->
+          <tr *ngIf="categorias.length === 0 && !loading">
             <td colspan="8" class="no-results">
               No hay categorías registradas
             </td>
@@ -122,6 +137,8 @@
         </button>
       </div>
       <div class="modal-body">
+        <!-- Mostrar error específico del formulario si existe -->
+        <div *ngIf="error && !showEditModal" class="error-message">{{ error }}</div>
         <form (ngSubmit)="crearCategoria()" #createForm="ngForm">
           <div class="form-row">
             <div class="form-group">
@@ -145,11 +162,12 @@
           <div class="form-row">
             <div class="form-group">
               <label for="cobertura">% de Cobertura *</label>
-              <input type="number" id="cobertura" [(ngModel)]="nuevaCategoria.Cobertura" name="Cobertura" required min="1" max="100">
+              <!-- Usar nuevaCategoria.PorcentajeCobertura -->
+              <input type="number" id="cobertura" [(ngModel)]="nuevaCategoria.PorcentajeCobertura" name="PorcentajeCobertura" required min="1" max="100">
             </div>
             <div class="form-group">
               <label for="monto">Monto (NIO) *</label>
-              <input type="number" id="monto" [(ngModel)]="nuevaCategoria.Monto" name="Monto" required min="1">
+              <input type="number" id="monto" [(ngModel)]="nuevaCategoria.Monto" name="Monto" required min="0" step="0.01"> <!-- step para decimales -->
             </div>
           </div>
           <div class="form-row">
@@ -164,7 +182,8 @@
             </div>
             <div class="form-group">
               <label for="colorIdentificativo">Color Identificativo</label>
-              <input type="color" id="colorIdentificativo" [(ngModel)]="nuevaCategoria.ColorIdentificativo" name="ColorIdentificativo">
+              <!-- Usar nuevaCategoria.ColorHex -->
+              <input type="color" id="colorIdentificativo" [(ngModel)]="nuevaCategoria.ColorHex" name="ColorHex">
             </div>
           </div>
           <div class="form-group">
@@ -175,7 +194,7 @@
             </select>
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-secundario" (click)="cerrarModalCrear()">Cancelar</button>
+            <button type="button" class="btn-secundario" (click)="cerrarModalCrear()" [disabled]="loading">Cancelar</button>
             <button type="submit" class="btn-primario" [disabled]="createForm.invalid || loading">
               <span *ngIf="!loading">Crear Categoría</span>
               <span *ngIf="loading" class="loading-spinner"></span>
@@ -187,7 +206,8 @@
   </div>
 
   <!-- Modal de Edición -->
-  <div *ngIf="showEditModal" class="modal-overlay" (click)="cerrarModalEditar()">
+  <!-- Corregido: Solo mostrar si categoriaEdit no es null -->
+  <div *ngIf="showEditModal && categoriaEdit" class="modal-overlay" (click)="cerrarModalEditar()">
     <div class="modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Editar Categoría de Beca</h3>
@@ -198,11 +218,15 @@
         </button>
       </div>
       <div class="modal-body">
+         <!-- Mostrar error específico del formulario si existe -->
+         <!-- Condición para evitar mostrar error de creación aquí -->
+         <div *ngIf="error && showEditModal" class="error-message">{{ error }}</div>
         <form (ngSubmit)="actualizarCategoria()" #editForm="ngForm">
           <div class="form-row">
             <div class="form-group">
-              <label for="categoria">Categoría *</label>
-              <select id="categoria" [(ngModel)]="categoriaEdit.Categoria" name="Categoria" required>
+              <label for="editCategoria">Categoría *</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <select id="editCategoria" [(ngModel)]="categoriaEdit.Categoria" name="Categoria" required>
                 <option value="A">A</option>
                 <option value="B">B</option>
                 <option value="C">C</option>
@@ -210,28 +234,33 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="nombre">Nombre de la Categoría *</label>
-              <input type="text" id="nombre" [(ngModel)]="categoriaEdit.Nombre" name="Nombre" required>
+              <label for="editNombre">Nombre de la Categoría *</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <input type="text" id="editNombre" [(ngModel)]="categoriaEdit.Nombre" name="Nombre" required>
             </div>
           </div>
           <div class="form-group">
-            <label for="descripcion">Descripción</label>
-            <textarea id="descripcion" [(ngModel)]="categoriaEdit.Descripcion" name="Descripcion" rows="3"></textarea>
+            <label for="editDescripcion">Descripción</label>
+            <!-- Corregido: Usar navegación segura (?) -->
+            <textarea id="editDescripcion" [(ngModel)]="categoriaEdit.Descripcion" name="Descripcion" rows="3"></textarea>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="cobertura">% de Cobertura *</label>
-              <input type="number" id="cobertura" [(ngModel)]="categoriaEdit.Cobertura" name="Cobertura" required min="1" max="100">
+              <label for="editCobertura">% de Cobertura *</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <input type="number" id="editCobertura" [(ngModel)]="categoriaEdit.PorcentajeCobertura" name="PorcentajeCobertura" required min="1" max="100">
             </div>
             <div class="form-group">
-              <label for="monto">Monto (NIO) *</label>
-              <input type="number" id="monto" [(ngModel)]="categoriaEdit.Monto" name="Monto" required min="1">
+              <label for="editMonto">Monto (NIO) *</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <input type="number" id="editMonto" [(ngModel)]="categoriaEdit.Monto" name="Monto" required min="0" step="0.01"> <!-- step para decimales -->
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="prioridad">Prioridad *</label>
-              <select id="prioridad" [(ngModel)]="categoriaEdit.Prioridad" name="Prioridad" required>
+              <label for="editPrioridad">Prioridad *</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <select id="editPrioridad" [(ngModel)]="categoriaEdit.Prioridad" name="Prioridad" required>
                 <option [ngValue]="1">Prioridad 1</option>
                 <option [ngValue]="2">Prioridad 2</option>
                 <option [ngValue]="3">Prioridad 3</option>
@@ -239,19 +268,21 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="colorIdentificativo">Color Identificativo</label>
-              <input type="color" id="colorIdentificativo" [(ngModel)]="categoriaEdit.ColorIdentificativo" name="ColorIdentificativo">
+              <label for="editColorIdentificativo">Color Identificativo</label>
+              <!-- Corregido: Usar navegación segura (?) -->
+              <input type="color" id="editColorIdentificativo" [(ngModel)]="categoriaEdit.ColorHex" name="ColorHex">
             </div>
           </div>
           <div class="form-group">
-            <label for="estado">Estado</label>
-            <select id="estado" [(ngModel)]="categoriaEdit.EstadoId" name="EstadoId" required>
+            <label for="editEstado">Estado</label>
+             <!-- Corregido: Usar navegación segura (?) -->
+            <select id="editEstado" [(ngModel)]="categoriaEdit.EstadoId" name="EstadoId" required>
               <option [ngValue]="1">Activa</option>
               <option [ngValue]="2">Inactiva</option>
             </select>
           </div>
           <div class="form-actions">
-            <button type="button" class="btn-secundario" (click)="cerrarModalEditar()">Cancelar</button>
+            <button type="button" class="btn-secundario" (click)="cerrarModalEditar()" [disabled]="loading">Cancelar</button>
             <button type="submit" class="btn-primario" [disabled]="editForm.invalid || loading">
               <span *ngIf="!loading">Actualizar Categoría</span>
               <span *ngIf="loading" class="loading-spinner"></span>

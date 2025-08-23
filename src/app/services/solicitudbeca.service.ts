@@ -1,9 +1,26 @@
+// src/app/services/solicitudbeca.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-// Interfaz exportada para poder usarla en otros componentes
+export interface SolicitudBecaDetalle {
+  Id: number;
+  EstudianteId: number;
+  TipoBecaId: number;
+  EstadoId: number;
+  FechaSolicitud: string;
+  PeriodoAcademicoId: number;
+  Observaciones?: string;
+  Fecha_resultado?: string;
+  EstudianteNombre: string;
+  EstudianteApellido: string;
+  TipoBecaNombre: string;
+  EstadoNombre: string;
+  PeriodoAcademicoNombre: string;
+  PeriodoAnioAcademico: string;
+}
+
 export interface SolicitudBeca {
   Id?: number;
   EstudianteId: number;
@@ -12,7 +29,7 @@ export interface SolicitudBeca {
   EstadoId?: number;
   FechaSolicitud?: string;
   Observaciones?: string;
-  Fecha_resultado?: string; // igual que en backend
+  Fecha_resultado?: string;
 }
 
 export interface PeriodoAcademico {
@@ -26,64 +43,77 @@ export interface PeriodoAcademico {
   providedIn: 'root',
 })
 export class SolicitudBecaService {
-  private apiUrl = 'http://localhost:3000/api-beca/solicitudbeca'; // ✅ CORREGIDO
+  private apiUrl = 'http://localhost:3000/api-beca/solicitudbeca';
   private apiUrlPeriodos = 'http://localhost:3000/api-beca/periodoacademico';
 
   constructor(private http: HttpClient) {}
 
-  // Obtener todos los datos para frontend (estudiantes, tipos de beca, estados, periodos)
   getAllData(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/frontend-data`, { headers: this.getHeaders() })
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error en getAllData:', error);
-          return throwError(() => new Error(`Error al obtener datos: ${error.message}`));
-        })
-      );
+      .pipe(catchError(this.handleError));
   }
 
-  // Listar todas las solicitudes
   getAll(): Observable<SolicitudBeca[]> {
-    return this.http.get<SolicitudBeca[]>(this.apiUrl, { headers: this.getHeaders() });
+    return this.http.get<SolicitudBeca[]>(this.apiUrl, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
-  // Obtener una solicitud por ID
   getOne(id: number): Observable<SolicitudBeca> {
-    return this.http.get<SolicitudBeca>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.get<SolicitudBeca>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
-  // Crear nueva solicitud
+  getSolicitudesPorEstudiante(estudianteId: number): Observable<SolicitudBecaDetalle[]> {
+    console.log(`[SolicitudBecaService] Solicitando datos para estudiante ${estudianteId}`);
+    return this.http.get<SolicitudBecaDetalle[]>(
+      `${this.apiUrl}/estudiante/${estudianteId}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError((error: HttpErrorResponse) => {
+        console.error(`[SolicitudBecaService] Error al obtener solicitudes para estudiante ${estudianteId}:`, error);
+        if (error.status === 401) {
+          console.error('Error de autenticación: Token inválido o ausente');
+        } else if (error.status === 404) {
+          console.error('Endpoint no encontrado');
+        }
+        return throwError(() => new Error(`Error al obtener solicitudes: ${error.message}`));
+      })
+    );
+  }
+
   createSolicitudBeca(data: SolicitudBeca): Observable<SolicitudBeca> {
     return this.http.post<SolicitudBeca>(`${this.apiUrl}/add`, data, { headers: this.getHeaders() })
-      .pipe(
-        catchError((error: HttpErrorResponse) => {
-          console.error('Error en createSolicitudBeca:', error);
-          return throwError(() => new Error(`Error al crear solicitud: ${error.message}`));
-        })
-      );
+      .pipe(catchError(this.handleError));
   }
 
-  // Actualizar solicitud existente
   updateSolicitudBeca(id: number, data: SolicitudBeca): Observable<SolicitudBeca> {
-    return this.http.put<SolicitudBeca>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() });
+    return this.http.put<SolicitudBeca>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
-  // Eliminar solicitud
   deleteSolicitudBeca(id: number): Observable<{ mensaje: string }> {
-    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete<{ mensaje: string }>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
-  // Obtener periodos académicos
   getAllPeriodosAcademicosLookup(): Observable<PeriodoAcademico[]> {
-    return this.http.get<PeriodoAcademico[]>(this.apiUrlPeriodos, { headers: this.getHeaders() });
+    return this.http.get<PeriodoAcademico[]>(this.apiUrlPeriodos, { headers: this.getHeaders() })
+      .pipe(catchError(this.handleError));
   }
 
-  // Headers con token de autenticación
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
+    if (!token) {
+      console.warn('[SolicitudBecaService] No se encontró access_token en localStorage.');
+    }
     return new HttpHeaders({
       'Content-Type': 'application/json',
-      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
     });
+  }
+
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    console.error('Error en la solicitud HTTP:', error);
+    return throwError(() => new Error(`Error: ${error.message}`));
   }
 }

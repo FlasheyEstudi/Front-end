@@ -1,45 +1,65 @@
-.mis-solicitudes-container {
-  margin-left: 260px; /* espacio para el sidebar */
-  padding: 1.5rem;
-  min-height: 100vh; /* para que ocupe todo el alto de la pantalla */
-  background-color: #fbfbfb;
+/* src/app/Child/MisSolicitudes/mis-solicitudes.css */
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-  h2 {
-    margin-bottom: 1rem;
-    font-size: 1.8rem;
-    color: #333;
-  }
+.table-responsive {
+  margin-top: 20px;
+}
 
-  .loading,
-  .error,
-  .no-data {
-    margin: 1rem 0;
-    font-weight: bold;
-    color: #ff4d4f;
-  }
+.alert {
+  margin-top: 20px;
+}
 
-  .solicitudes-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+.progress {
+  height: 20px;
+}
 
-    th, td {
-      border: 1px solid #ddd;
-      padding: 0.5rem 1rem;
-      text-align: left;
-    }
+.progress-bar.pendiente {
+  background-color: #ffc107; /* Amarillo */
+}
 
-    th {
-      background-color: #f0f0f0;
-      font-weight: 600;
-    }
+.progress-bar.en-revisión {
+  background-color: #17a2b8; /* Cian */
+}
 
-    tr:nth-child(even) {
-      background-color: #fafafa;
-    }
+.progress-bar.aprobado,
+.progress-bar.ejecutado {
+  background-color: #28a745; /* Verde */
+}
 
-    tr:hover {
-      background-color: #e6f7ff;
-    }
-  }
+.progress-bar.rechazado {
+  background-color: #dc3545; /* Rojo */
+}
+
+.progress-bar.estado-desconocido {
+  background-color: #6c757d; /* Gris */
+}
+
+span.pendiente {
+  color: #ffc107;
+}
+
+span.en-revisión {
+  color: #17a2b8;
+}
+
+span.aprobado,
+span.ejecutado {
+  color: #28a745;
+}
+
+span.rechazado {
+  color: #dc3545;
+}
+
+span.estado-desconocido {
+  color: #6c757d;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
 }

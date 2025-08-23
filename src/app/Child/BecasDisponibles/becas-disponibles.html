@@ -1,4 +1,5 @@
-<!-- becas-disponibles.html -->
+<!-- src/app/Child/BecasDisponibles/becas-disponibles.html -->
+<!-- Ajusta la ruta según tu estructura de carpetas -->
 <div class="becas-contenido">
   <!-- Encabezado -->
   <div class="page-header">
@@ -18,6 +19,7 @@
         [(ngModel)]="searchTerm"
       />
     </div>
+    <!--
     <div class="category-group">
       <label for="categoria">Categoría</label>
       <select id="categoria" [(ngModel)]="categoriaFiltro">
@@ -27,6 +29,7 @@
         <option value="Transporte">Transporte</option>
       </select>
     </div>
+    -->
     <div class="count-badge">
       {{ filteredBecas.length }} becas encontradas
     </div>
@@ -48,6 +51,7 @@
     <div *ngFor="let beca of filteredBecas" class="card">
       <div class="card-header">
         <div class="beca-tags">
+          <!--
           <span
             class="tag"
             [ngClass]="{
@@ -58,19 +62,23 @@
           >
             {{ beca.Categoria }}
           </span>
+          -->
           <span class="tag tag-disponible">Disponible</span>
         </div>
         <h3>{{ beca.Nombre }}</h3>
+        <!--
         <div class="coverage">
           <span class="coverage-percent">{{ beca.PorcentajeCobertura || 0 }}%</span>
           <span class="coverage-text">de cobertura</span>
         </div>
+        -->
       </div>
 
       <div class="card-body">
         <p class="description">
           {{ beca.Descripcion || 'Sin descripción' }}
         </p>
+        <!--
         <div class="requirements">
           <h4>Requisitos principales:</h4>
           <ul>
@@ -87,16 +95,17 @@
             >+{{ beca.RequisitosAdicionales || '0' }} requisitos más</a
           >
         </div>
+        -->
       </div>
 
       <div class="card-footer">
         <div class="meta">
-          <span class="date"
+          <!-- <span class="date"
             >Fecha límite: {{ beca.FechaLimite || 'No definida' }}</span
-          >
-          <span class="beneficiaries"
+          > -->
+          <!-- <span class="beneficiaries"
             >{{ beca.Beneficiarios || 0 }} beneficiarios</span
-          >
+          > -->
         </div>
         <div class="actions">
           <button class="btn-secundario" (click)="abrirDetalle(beca)">
@@ -119,8 +128,8 @@
       </div>
       <div class="modal-body">
         <p><strong>Beca:</strong> {{ selectedBeca?.Nombre }}</p>
-        <p><strong>Categoría:</strong> {{ selectedBeca?.Categoria }}</p>
-        <p><strong>Fecha límite:</strong> {{ selectedBeca?.FechaLimite }}</p>
+        <!-- <p><strong>Categoría:</strong> {{ selectedBeca?.Categoria }}</p> -->
+        <!-- <p><strong>Fecha límite:</strong> {{ selectedBeca?.FechaLimite }}</p> -->
 
         <form #solicitudForm="ngForm" class="modal-form">
           <div class="form-group">
@@ -152,7 +161,7 @@
         <button
           class="btn-primario"
           (click)="solicitarBeca()"
-          [disabled]="!solicitudForm.valid"
+          [disabled]="!solicitudForm?.valid"
         >
           Enviar Solicitud
         </button>

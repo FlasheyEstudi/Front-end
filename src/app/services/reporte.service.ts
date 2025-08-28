@@ -9,7 +9,7 @@ export interface ReporteTotales {
   Pendientes: number;
   Aprobadas: number;
   Rechazadas: number;
-  PresupuestoTotal: number; // <-- agregado para sincronizar con componente
+  PresupuestoTotal: number;
 }
 
 export interface ReporteSolicitudesPorEstado {
@@ -40,6 +40,18 @@ export interface ReporteImpactData {
   promedio: number;
   graduados: number;
   tasaRetencion: number;
+}
+
+// Interfaces para lookups
+export interface PeriodoAcademicoLookup {
+  Id: number;
+  Nombre: string;
+  AnioAcademico: string;
+}
+
+export interface EstadoLookup {
+  Id: number;
+  Nombre: string;
 }
 
 @Injectable({
@@ -84,5 +96,14 @@ export class ReporteService {
 
   getImpactData(): Observable<ReporteImpactData[]> {
     return this.http.get<ReporteImpactData[]>(`${this.apiUrl}/impacto`, { headers: this.getHeaders() });
+  }
+
+  // Métodos para obtener lookups
+  getPeriodosAcademicos(): Observable<PeriodoAcademicoLookup[]> {
+    return this.http.get<PeriodoAcademicoLookup[]>('http://localhost:3000/api-beca/periodoacademico', { headers: this.getHeaders() });
+  }
+
+  getEstados(): Observable<EstadoLookup[]> {
+    return this.http.get<EstadoLookup[]>('http://localhost:3000/api-beca/estado', { headers: this.getHeaders() });
   }
 }

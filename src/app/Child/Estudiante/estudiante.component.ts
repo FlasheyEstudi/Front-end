@@ -16,16 +16,18 @@ export class EstudianteComponent implements OnInit {
   filteredEstudiantes: Estudiante[] = [];
   error: string = '';
   loading: boolean = false;
+
+  // KPIs
   totalEstudiantes: number = 0;
   estudiantesActivos: number = 0;
   edadPromedio: number = 0;
 
-  // Modales
+  // Modal states
   showModal: boolean = false;
   showEditModal: boolean = false;
-  showCredentialsModal: boolean = false; // ✅ Agregado
+  showCredentialsModal: boolean = false;
 
-  // Datos para modales
+  // Form data
   nuevoEstudiante = {
     Nombre: '',
     Apellido: '',
@@ -48,21 +50,18 @@ export class EstudianteComponent implements OnInit {
     CarreraNombre: ''
   };
 
-  // ✅ Agregado: Objeto para credenciales
-  credenciales: {
-    usuario: string;
-    correo: string;
-    contrasena: string;
-  } = {
+  credenciales = {
     usuario: '',
     correo: '',
     contrasena: ''
   };
 
+  // Filters
   searchTerm: string = '';
   filtroEstado: string = '';
   filtroCarrera: string = '';
 
+  // Lookup data
   carrerasDisponibles: Carrera[] = [];
   estadosDisponibles: Estado[] = [];
 
@@ -80,22 +79,23 @@ export class EstudianteComponent implements OnInit {
   private async cargarDatosIniciales() {
     this.loading = true;
     this.error = '';
-
     try {
-      // Cargar estados
-      this.estadosDisponibles = await this.estudianteService.getAllEstados();
-      
-      // Cargar carreras
-      this.carrerasDisponibles = await this.estudianteService.getAllCarreras();
-      
-      // Cargar estudiantes
-      this.estudiantes = await this.estudianteService.getAllEstudiantes();
+      const [estados, carreras, estudiantes] = await Promise.all([
+        this.estudianteService.getAllEstados(),
+        this.estudianteService.getAllCarreras(),
+        this.estudianteService.getAllEstudiantes()
+      ]);
+
+      this.estadosDisponibles = estados;
+      this.carrerasDisponibles = carreras;
+      this.estudiantes = estudiantes;
       this.filteredEstudiantes = [...this.estudiantes];
-      this.calcularKPIs();
-      this.loading = false;
+      this.calcularKPIs(); // Calcular KPIs después de cargar los datos
     } catch (err: any) {
       console.error('Error cargando datos:', err);
       this.error = 'Error cargando datos: ' + (err.error?.message || err.message);
+      this.showToastMessage('Error al cargar datos', 'error');
+    } finally {
       this.loading = false;
     }
   }
@@ -107,103 +107,110 @@ export class EstudianteComponent implements OnInit {
   }
 
   getCarreraNombre(id?: number): string {
-    if (id === undefined || id === null) return 'No asignada';
+    if (id === undefined || id === null) return 'No asignado';
     const carrera = this.carrerasDisponibles.find(c => c.Id === id);
     return carrera ? carrera.Nombre : `ID: ${id}`;
   }
 
-  getProgramaNombre(id?: number): string {
-    if (id === undefined || id === null) return '';
-    const carrera = this.carrerasDisponibles.find(c => c.Id === id);
-    return carrera ? carrera.Programa || '' : '';
-  }
-
-  getBecasActivas(estudianteId: number): string {
-    return Math.random() > 0.5 ? '1' : '';
-  }
-
+  // *** CORRECCIÓN PRINCIPAL ***
+  // Calcular KPIs, incluyendo el número correcto de estudiantes activos
   calcularKPIs() {
     this.totalEstudiantes = this.estudiantes.length;
-    this.estudiantesActivos = this.estudiantes.filter(e => e.EstadoId === 1).length;
+    // Corrección: Filtrar por EstadoId = 4, que es "Activo" según la base de datos
+    this.estudiantesActivos = this.estudiantes.filter(e => e.EstadoId === 4).length;
     
-    // Calcular edad promedio solo con estudiantes que tienen edad válida
+    // Calcular edad promedio de forma segura
     const estudiantesConEdad = this.estudiantes.filter(e => e.Edad && e.Edad > 0);
-    this.edadPromedio = estudiantesConEdad.length > 0 
+    this.edadPromedio = estudiantesConEdad.length > 0
       ? Math.round(estudiantesConEdad.reduce((sum, e) => sum + e.Edad, 0) / estudiantesConEdad.length)
       : 0;
   }
+  // *** FIN CORRECCIÓN PRINCIPAL ***
 
   private validarEstudiante(): boolean {
     this.error = '';
     if (!this.nuevoEstudiante.Nombre?.trim()) { this.error = 'Nombre es requerido'; return false; }
     if (!this.nuevoEstudiante.Apellido?.trim()) { this.error = 'Apellido es requerido'; return false; }
     if (!this.nuevoEstudiante.Edad || this.nuevoEstudiante.Edad <= 0) { this.error = 'Edad válida es requerida'; return false; }
-    if (!this.nuevoEstudiante.Correo?.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) { this.error = 'Correo electrónico inválido'; return false; }
+    if (!this.nuevoEstudiante.Correo?.trim()) { this.error = 'Correo es requerido'; return false; }
+    if (!this.nuevoEstudiante.EstadoId) { this.error = 'Estado es requerido'; return false; }
+    if (!this.nuevoEstudiante.CarreraId) { this.error = 'Carrera es requerida'; return false; }
     return true;
   }
 
-  abrirModalRegistro() { this.showModal = true; this.error = ''; }
-  cerrarModalRegistro() { this.showModal = false; this.resetFormulario(); }
+  // Filtros
+  aplicarFiltros() {
+    this.filteredEstudiantes = this.estudiantes.filter(estudiante => {
+      const matchesSearch = !this.searchTerm ||
+        (estudiante.Nombre?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+         estudiante.Apellido?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+         estudiante.Correo?.toLowerCase().includes(this.searchTerm.toLowerCase()));
 
-  // ✅ Agregado: Método para abrir modal de credenciales
+      const matchesEstado = !this.filtroEstado || estudiante.EstadoId?.toString() === this.filtroEstado;
+      const matchesCarrera = !this.filtroCarrera || estudiante.CarreraId?.toString() === this.filtroCarrera;
+
+      return matchesSearch && matchesEstado && matchesCarrera;
+    });
+  }
+
+  limpiarFiltros() {
+    this.searchTerm = '';
+    this.filtroEstado = '';
+    this.filtroCarrera = '';
+    this.filteredEstudiantes = [...this.estudiantes];
+  }
+
+  // Toast
+  showToastMessage(message: string, type: 'success' | 'error') {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToast = true;
+    setTimeout(() => this.showToast = false, 3000);
+  }
+
+  // Modales
+  abrirModalRegistro() {
+    this.showModal = true;
+    this.resetFormulario();
+  }
+
+  cerrarModalRegistro() {
+    this.showModal = false;
+    this.resetFormulario();
+  }
+
   abrirModalCredenciales(usuario: string, correo: string, contrasena: string) {
-    this.credenciales = {
-      usuario: usuario,
-      correo: correo,
-      contrasena: contrasena
-    };
+    this.credenciales = { usuario, correo, contrasena };
     this.showCredentialsModal = true;
   }
 
-  // ✅ Agregado: Método para cerrar modal de credenciales
   cerrarModalCredenciales() {
     this.showCredentialsModal = false;
-    this.credenciales = {
-      usuario: '',
-      correo: '',
-      contrasena: ''
-    };
+    this.credenciales = { usuario: '', correo: '', contrasena: '' };
   }
 
   editarEstudiante(id: number) {
     const estudiante = this.estudiantes.find(e => e.Id === id);
     if (estudiante) {
+      // Crear una copia para evitar mutaciones directas
       this.estudianteEdit = { ...estudiante };
       this.showEditModal = true;
     }
   }
 
-  async cerrarModalEdicion() { 
-    this.showEditModal = false; 
+  async cerrarModalEdicion() {
+    this.showEditModal = false;
+    // Opcional: Resetear el formulario de edición si es necesario
+    // this.estudianteEdit = { ...this.estudianteEditInitialState };
   }
 
-  filtrarEstudiantes() {
-    let filtered = [...this.estudiantes];
-    const term = this.searchTerm.toLowerCase();
-    if (term) {
-      filtered = filtered.filter(e =>
-        e.Nombre.toLowerCase().includes(term) ||
-        e.Apellido.toLowerCase().includes(term) ||
-        e.Correo.toLowerCase().includes(term)
-      );
-    }
-    if (this.filtroEstado) {
-      const estadoId = Number(this.filtroEstado);
-      filtered = filtered.filter(e => e.EstadoId === estadoId);
-    }
-    if (this.filtroCarrera) {
-      const carreraId = Number(this.filtroCarrera);
-      filtered = filtered.filter(e => e.CarreraId === carreraId);
-    }
-    this.filteredEstudiantes = filtered;
-  }
-
+  // Acciones CRUD
   async deleteEstudiante(id: number) {
     if (!confirm('¿Está seguro de eliminar este estudiante?')) return;
     this.loading = true;
     try {
       await this.estudianteService.eliminarEstudiante(id);
-      await this.cargarDatosIniciales();
+      await this.cargarDatosIniciales(); // Recargar datos después de eliminar
       this.showToastMessage('Estudiante eliminado correctamente', 'success');
     } catch (err: any) {
       this.error = 'Error eliminando estudiante: ' + (err.error?.message || err.message);
@@ -213,23 +220,24 @@ export class EstudianteComponent implements OnInit {
     }
   }
 
-  verEstudiante(id: number) { alert(`Ver estudiante con ID: ${id}`); }
+  verEstudiante(id: number) {
+    alert(`Ver estudiante con ID: ${id}`);
+  }
 
   resetFormulario() {
-    this.nuevoEstudiante = { 
-      Nombre: '', 
-      Apellido: '', 
-      Edad: null, 
-      Correo: '', 
-      EstadoId: null, 
-      CarreraId: null 
+    this.nuevoEstudiante = {
+      Nombre: '',
+      Apellido: '',
+      Edad: null,
+      Correo: '',
+      EstadoId: null,
+      CarreraId: null
     };
     this.error = '';
   }
 
   async onSubmitNewStudent() {
     if (!this.validarEstudiante()) return;
-    
     this.loading = true;
     try {
       const estudianteData = {
@@ -239,13 +247,12 @@ export class EstudianteComponent implements OnInit {
         Correo: this.nuevoEstudiante.Correo,
         EstadoId: this.nuevoEstudiante.EstadoId !== null ? this.nuevoEstudiante.EstadoId : undefined,
         CarreraId: this.nuevoEstudiante.CarreraId !== null ? this.nuevoEstudiante.CarreraId : undefined,
-        Role: 'estudiante' // Agregar rol por defecto
+        Role: 'estudiante' // Si es necesario
       };
 
       const response = await this.estudianteService.createEstudiante(estudianteData);
-      await this.cargarDatosIniciales();
-      
-      // ✅ Modificado: Usar el nuevo modal de credenciales
+      await this.cargarDatosIniciales(); // Recargar datos después de crear
+
       if (response.credenciales) {
         this.abrirModalCredenciales(
           response.credenciales.username,
@@ -255,7 +262,6 @@ export class EstudianteComponent implements OnInit {
       } else {
         this.showToastMessage('Estudiante creado correctamente', 'success');
       }
-      
       this.cerrarModalRegistro();
     } catch (err: any) {
       this.error = 'Error creando estudiante: ' + (err.error?.message || err.message);
@@ -266,6 +272,11 @@ export class EstudianteComponent implements OnInit {
   }
 
   async onSubmitEditStudent() {
+    if (!this.estudianteEdit.Id) {
+       this.error = 'ID de estudiante no válido para editar';
+       this.showToastMessage('Error al actualizar estudiante', 'error');
+       return;
+    }
     this.loading = true;
     try {
       const estudianteData = {
@@ -274,11 +285,11 @@ export class EstudianteComponent implements OnInit {
         Edad: this.estudianteEdit.Edad,
         Correo: this.estudianteEdit.Correo,
         EstadoId: this.estudianteEdit.EstadoId !== null ? this.estudianteEdit.EstadoId : undefined,
-        CarreraId: this.estudianteEdit.CarreraId !== null ? this.estudianteEdit.CarreraId : undefined
+        CarreraId: this.estudianteEdit.CarreraId !== null ? this.estudianteEdit.CarreraId : undefined,
       };
 
       await this.estudianteService.updateEstudiante(this.estudianteEdit.Id, estudianteData);
-      await this.cargarDatosIniciales();
+      await this.cargarDatosIniciales(); // Recargar datos después de actualizar
       this.cerrarModalEdicion();
       this.showToastMessage('Estudiante actualizado correctamente', 'success');
     } catch (err: any) {
@@ -289,10 +300,27 @@ export class EstudianteComponent implements OnInit {
     }
   }
 
-  // Toast
-  copyToClipboard(text: string, type: string) { navigator.clipboard.writeText(text); }
-  showToastMessage(message: string, type: 'success'|'error' = 'success', isHtml=false) {
-    this.toastMessage = message; this.toastType = type; this.showToast = true;
-    setTimeout(() => { this.showToast = false; }, 10000);
+  copyToClipboard(text: string, type: string) {
+    navigator.clipboard.writeText(text);
+    // Opcional: Mostrar un mensaje de confirmación de copia
+    // this.showToastMessage(`${type} copiado al portapapeles`, 'success');
+  }
+
+  // Función para rastrear estudiantes en *ngFor
+  trackByEstudiante(index: number, item: Estudiante): number {
+    return item.Id;
+  }
+
+  // Placeholder para funcionalidad futura
+  getBecasActivas(estudianteId: number): number | null {
+    // Lógica para obtener el número de becas activas del estudiante
+    // Por ahora, retorna null o un valor por defecto
+    return null; // o 0, o el número real si se implementa
+  }
+
+  getProgramaNombre(carreraId?: number): string {
+    // Lógica para obtener el nombre del programa de una carrera
+    // Por ahora, retorna un string vacío o un valor por defecto
+    return ''; // o 'Programa no disponible'
   }
 }

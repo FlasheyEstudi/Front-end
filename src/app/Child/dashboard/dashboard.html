@@ -65,21 +65,6 @@
     <canvas id="trendChart"></canvas>
   </div>
 
-  <!-- Actividad Reciente -->
-  <div class="activity-section">
-    <h3 class="activity-title">Actividad Reciente</h3>
-    <ul class="activity-list">
-      <li class="activity-item" *ngFor="let activity of recentActivities">
-        <span class="activity-icon" [class]="activity.color">{{ activity.icon }}</span>
-        <div class="activity-text">
-          <strong>{{ activity.title }}</strong><br />
-          {{ activity.description }}<br />
-          <small>{{ activity.time }}</small>
-        </div>
-      </li>
-    </ul>
-  </div>
-
   <!-- Acciones Rápidas -->
   <div class="quick-actions">
     <div class="quick-action" (click)="navigateTo('/solicitud-beca')">

@@ -1,57 +1,21 @@
+// src/app/components/detallepago/detallepago.component.ts
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface DetallePago {
-  Id: number;
-  SolicitudBecaId: number;
-  TipoPagoId: number;
-  Monto: number;
-  FechaPago: string;
-  Referencia: string;
-  EstadoId: number;
-  SolicitudBecaReferencia?: string;
-  TipoPagoNombre?: string;
-  Estadonombre?: string;
-}
-
-interface SolicitudBecaLookup {
-  Id: number;
-  Referencia: string;
-}
-
-interface TipoPagoLookup {
-  Id: number;
-  Nombre: string;
-}
-
-interface EstadoLookup {
-  Id: number;
-  Nombre: string;
-}
-
-interface ControlPago {
-  Id: number;
-  Beneficiario: string;
-  Codigo: string;
-  Beca: string;
-  MontoTotal: number;
-  Pagado: number;
-  Restante: number;
-  ProximoPago: string;
-  Estado: string;
-  EstaProgramado: boolean;
-}
-
-interface TransactionHistory {
-  id: number;
-  nombre: string;
-  fecha: string;
-  monto: number;
-  metodo: string;
-  estado: string;
-}
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import {
+  DetallePagoService,
+  EstudianteBeneficiado,
+  DetallePago,
+  SolicitudBecaLookup,
+  TipoPagoLookup,
+  EstadoLookup,
+  ControlPago,
+  CalendarioPago,
+  TransactionHistory,
+  DashboardData
+} from '../../services/detallepago.service';
 
 @Component({
   selector: 'app-detalle-pago',
@@ -61,12 +25,13 @@ interface TransactionHistory {
   styleUrls: ['./detallepago.component.css']
 })
 export class DetallePagoComponent implements OnInit {
-  // === PROPIEDADES EXISTENTES === //
   detallesDePago: DetallePago[] = [];
   filteredDetallesDePago: DetallePago[] = [];
   solicitudesBecaLookup: SolicitudBecaLookup[] = [];
   tiposPagoLookup: TipoPagoLookup[] = [];
   estadosLookup: EstadoLookup[] = [];
+  estudiantesBeneficiados: EstudianteBeneficiado[] = [];
+  controlDePagos: ControlPago[] = [];
   nuevoDetallePago: Partial<DetallePago> = {
     SolicitudBecaId: undefined,
     TipoPagoId: undefined,
@@ -83,191 +48,150 @@ export class DetallePagoComponent implements OnInit {
   editMode: boolean = false;
   detallePagoToEdit: DetallePago | null = null;
   loading: boolean = false;
-
-  // === NUEVAS PROPIEDADES PARA EL DASHBOARD === //
-  activeTab: string = 'control'; // 'control', 'calendar', 'history'
-  dashboardData: any = {
+  activeTab: string = 'control';
+  dashboardData: DashboardData = {
     totalPagado: 0,
     totalPendiente: 0,
     beneficiariosActivos: 0,
     presupuestoTotal: 0
   };
-  calendarioDePagos: any[] = [];
+  calendarioDePagos: CalendarioPago[] = [];
   historialTransacciones: TransactionHistory[] = [];
-  
-  // Modales
   showProcessPaymentModal = false;
   showDetailsModal = false;
-  
-  // Datos para modales
   selectedStudentId: number | null = null;
+  selectedSolicitudBecaId: number | null = null;
   selectedDetalle: DetallePago | null = null;
   montoAPagar = 0;
   fechaPago: string = '';
   metodoPago: string = '';
 
-  private apiUrl = 'http://localhost:3000/api-beca/detallepago';
-
-  constructor(private http: HttpClient) {}
+  constructor(private detallePagoService: DetallePagoService) {}
 
   ngOnInit(): void {
     this.loadAllData();
   }
 
-  // === CARGA TODOS LOS DATOS === //
   loadAllData() {
     this.clearMessages();
     this.loading = true;
-    
-    // Cargar datos principales
-    this.http.get<DetallePago[]>(`${this.apiUrl}`)
-      .subscribe({
-        next: data => {
-          this.detallesDePago = data || [];
-          this.filteredDetallesDePago = [...data];
-          this.onSearch();
-          
-          // Cargar lookup tables
-          this.loadLookups();
-        },
-        error: err => {
-          console.error('Error cargando detalles de pago:', err);
+    console.log('[Component] Iniciando carga de datos principales...');
+    this.detallePagoService.getAllData().subscribe({
+      next: (data: {
+        detalles: DetallePago[];
+        solicitudes: SolicitudBecaLookup[];
+        tiposPago: TipoPagoLookup[];
+        estados: EstadoLookup[];
+      }) => {
+        console.log('[Component] Datos principales cargados:', data);
+        if (data && Array.isArray(data.detalles)) {
+          this.detallesDePago = data.detalles;
+          this.filteredDetallesDePago = [...this.detallesDePago];
+          this.solicitudesBecaLookup = data.solicitudes || [];
+          this.tiposPagoLookup = data.tiposPago || [];
+          this.estadosLookup = data.estados || [];
+          this.loadDashboardData();
+        } else {
+          console.error('[Component] Formato de datos principales inesperado:', data);
+          this.errorMsg = 'Error al cargar los datos principales: Formato de respuesta inesperado.';
           this.loading = false;
         }
-      });
+      },
+      error: (err: any) => {
+        console.error('[Component] Error cargando datos principales:', err);
+        this.errorMsg = 'Error al cargar los datos principales: ' + (err.message || 'Desconocido');
+        this.loading = false;
+      }
+    });
   }
 
-  loadLookups() {
-    // Cargar solicitudes de beca
-    this.http.get<SolicitudBecaLookup[]>(`${this.apiUrl}/solicitudes-beca`)
-      .subscribe({
-        next: data => {
-          this.solicitudesBecaLookup = data || [];
-        }
-      });
-
-    // Cargar tipos de pago
-    this.http.get<TipoPagoLookup[]>(`${this.apiUrl}/tipos-pago`)
-      .subscribe({
-        next: data => {
-          this.tiposPagoLookup = data || [];
-        }
-      });
-
-    // Cargar estados
-    this.http.get<EstadoLookup[]>(`${this.apiUrl}/estados`)
-      .subscribe({
-        next: data => {
-          this.estadosLookup = data || [];
-        }
-      });
-
-    // Cargar datos del dashboard
-    this.loadDashboardData();
-  }
-
-  // === NUEVOS MÉTODOS PARA EL DASHBOARD === //
   loadDashboardData() {
-    // Obtener datos del dashboard
-    this.http.get<any>(`${this.apiUrl}/dashboard-summary`)
-      .subscribe({
-        next: (summary) => {
-          this.dashboardData = summary;
-        },
-        error: (err) => {
-          console.error('Error cargando resumen del dashboard:', err);
-        }
-      });
-
-    // Obtener control de pagos
-    this.http.get<ControlPago[]>(`${this.apiUrl}/control-pagos`)
-      .subscribe({
-        next: (control) => {
-          // Convertir el array de control a tipo DetallePago para mantener compatibilidad
-          this.filteredDetallesDePago = control.map(item => ({
-            Id: item.Id,
-            SolicitudBecaId: 0, // No aplicable
-            TipoPagoId: 0, // No aplicable
-            Monto: item.MontoTotal,
-            FechaPago: item.ProximoPago,
-            Referencia: '',
-            EstadoId: 0, // No aplicable
-            SolicitudBecaReferencia: item.Beneficiario,
-            TipoPagoNombre: item.Beca,
-            Estadonombre: item.Estado
-          } as DetallePago));
-        },
-        error: (err) => {
-          console.error('Error cargando control de pagos:', err);
-        }
-      });
-
-    // Obtener historial de transacciones
-    this.http.get<TransactionHistory[]>(`${this.apiUrl}/historial`)
-      .subscribe({
-        next: (history) => {
-          this.historialTransacciones = history || [];
-        },
-        error: (err) => {
-          console.error('Error cargando historial de transacciones:', err);
-        }
-      });
-  }
-
-  openProcessPaymentModal() {
-    this.showProcessPaymentModal = true;
-    this.selectedStudentId = null;
-    this.montoAPagar = 0;
-    this.fechaPago = '';
-    this.metodoPago = '';
-  }
-
-  closeProcessPaymentModal() {
-    this.showProcessPaymentModal = false;
-  }
-
-  processPayment() {
-    if (!this.selectedStudentId || !this.montoAPagar || !this.fechaPago || !this.metodoPago) {
-      alert('Por favor complete todos los campos obligatorios');
-      return;
-    }
-
+    console.log('[Component] Cargando datos del dashboard...');
     this.loading = true;
-    
-    const data = {
-      SolicitudBecaId: this.selectedStudentId,
-      TipoPagoId: 1,
-      Monto: this.montoAPagar,
-      FechaPago: this.fechaPago,
-      Referencia: '',
-      EstadoId: 1
-    };
-
-    this.http.post(`${this.apiUrl}/add`, data)
-      .subscribe({
-        next: () => {
-          this.closeProcessPaymentModal();
-          this.loadAllData();
-          alert('Pago procesado correctamente');
-        },
-        error: err => {
-          console.error('Error procesando pago:', err);
-          alert('Error al procesar el pago');
-          this.loading = false;
+    forkJoin({
+      dashboard: this.detallePagoService.getDashboardSummary().pipe(
+        catchError(err => {
+          console.error('[Component] Error cargando resumen del dashboard:', err);
+          return of({ totalPagado: 0, totalPendiente: 0, beneficiariosActivos: 0, presupuestoTotal: 0 });
+        })
+      ),
+      controlPagos: this.detallePagoService.getControlDePagos().pipe(
+        catchError(err => {
+          console.error('[Component] Error cargando control de pagos:', err);
+          return of([]);
+        })
+      ),
+      historial: this.detallePagoService.getHistorialTransacciones().pipe(
+        catchError(err => {
+          console.error('[Component] Error cargando historial de transacciones:', err);
+          return of([]);
+        })
+      ),
+      calendario: this.detallePagoService.getCalendarioDePagos().pipe(
+        catchError(err => {
+          console.error('[Component] Error cargando calendario de pagos:', err);
+          return of([]);
+        })
+      ),
+      // *** MEJORA EN EL MANEJO DE ERRORES ***
+      estudiantes: this.detallePagoService.getEstudiantesBeneficiados().pipe(
+        catchError(err => {
+          // Registrar el error completo para diagnóstico
+          console.error('[Component] Error DETALLADO cargando estudiantes beneficiados:', err);
+          // Verificar si `err` tiene más propiedades útiles
+          let errorMsg = 'Desconocido';
+          if (err && typeof err === 'object') {
+            if (err.message) {
+              errorMsg = err.message;
+            } else if (err.error) {
+              errorMsg = err.error;
+            } else if (err.status) {
+              errorMsg = `HTTP ${err.status}: ${err.statusText || 'Error'}`;
+            }
+            // Si es un objeto, intentar serializarlo parcialmente para ver su contenido
+            try {
+              errorMsg += ` (Detalles: ${JSON.stringify(err, Object.getOwnPropertyNames(err)).substring(0, 200)}...)`;
+            } catch (e) {
+              errorMsg += ` (No se pudo serializar el error)`;
+            }
+          } else if (err) {
+            errorMsg = String(err);
+          }
+          this.errorMsg = 'No se pudieron cargar los estudiantes beneficiados: ' + errorMsg;
+          console.log('[Component] Mensaje de error construido:', this.errorMsg); // Depuración
+          return of([]); // Devolver un array vacío para que no falle el forkJoin
+        })
+      )
+      // *** FIN MEJORA ***
+    }).subscribe({
+      next: (results) => {
+        console.log('[Component] Datos del dashboard cargados en paralelo:', results);
+        // Verificar específicamente los estudiantes
+        console.log('[Component] Estudiantes beneficiados recibidos (RAW):', results.estudiantes);
+        if (!Array.isArray(results.estudiantes)) {
+           console.error('[Component] El resultado de estudiantes no es un array:', results.estudiantes);
+           this.errorMsg = 'Datos de estudiantes recibidos en formato inesperado.';
+           this.estudiantesBeneficiados = []; // Asegurar array vacío
+        } else {
+           this.estudiantesBeneficiados = results.estudiantes;
+           console.log('[Component] Estudiantes beneficiados asignados al componente:', this.estudiantesBeneficiados.length, 'elementos');
         }
-      });
+        this.dashboardData = results.dashboard;
+        this.controlDePagos = results.controlPagos;
+        this.historialTransacciones = results.historial;
+        this.calendarioDePagos = results.calendario;
+        // this.estudiantesBeneficiados = results.estudiantes; // Ya se asignó arriba
+        this.loading = false;
+        this.onSearch();
+      },
+      error: (err) => {
+        console.error('[Component] Error inesperado en forkJoin:', err);
+        this.errorMsg = 'Error inesperado cargando datos del dashboard: ' + (err.message || 'Desconocido');
+        this.loading = false;
+      }
+    });
   }
 
-  openDetailsModal(detalle: DetallePago) {
-    this.selectedDetalle = detalle;
-    this.showDetailsModal = true;
-  }
-
-  closeDetailsModal() {
-    this.showDetailsModal = false;
-  }
-
-  // === MÉTODOS EXISTENTES MODIFICADOS === //
   guardarDetallePago() {
     this.clearMessages();
     this.loading = true;
@@ -277,7 +201,8 @@ export class DetallePagoComponent implements OnInit {
       this.loading = false;
       return;
     }
-    const dataToSend = {
+
+    const dataToSend: any = {
       SolicitudBecaId: this.nuevoDetallePago.SolicitudBecaId!,
       TipoPagoId: this.nuevoDetallePago.TipoPagoId!,
       Monto: Number(this.nuevoDetallePago.Monto),
@@ -285,83 +210,130 @@ export class DetallePagoComponent implements OnInit {
       Referencia: this.nuevoDetallePago.Referencia || '',
       EstadoId: this.nuevoDetallePago.EstadoId!
     };
+
     if (this.editMode && this.detallePagoToEdit?.Id) {
-      this.http.put(`${this.apiUrl}/${this.detallePagoToEdit.Id}`, dataToSend)
-        .subscribe({
-          next: () => {
-            this.successMsg = 'Detalle de Pago actualizado correctamente.';
-            this.resetForm();
-            this.loadAllData();
-          },
-          error: (err) => {
-            console.error('Error actualizando Detalle de Pago:', err);
-            this.errorMsg = err.error?.detalle || 'Error al actualizar Detalle de Pago.';
-            this.loading = false;
-          }
-        });
+      this.detallePagoService.update(this.detallePagoToEdit.Id, dataToSend).subscribe({
+        next: (updatedData: any) => {
+          this.successMsg = 'Detalle de Pago actualizado correctamente.';
+          this.resetForm();
+          this.loadAllData();
+        },
+        error: (err: any) => {
+          console.error('[Component] Error actualizando Detalle de Pago:', err);
+          this.errorMsg = 'Error al actualizar: ' + (err.message || 'Desconocido');
+          this.loading = false;
+        }
+      });
     } else {
-      this.http.post(`${this.apiUrl}/add`, dataToSend)
-        .subscribe({
-          next: () => {
-            this.successMsg = 'Detalle de Pago agregado correctamente.';
-            this.resetForm();
-            this.loadAllData();
-          },
-          error: (err) => {
-            console.error('Error agregando Detalle de Pago:', err);
-            this.errorMsg = err.error?.detalle || 'Error al agregar Detalle de Pago.';
-            this.loading = false;
-          }
-        });
+      this.detallePagoService.add(dataToSend).subscribe({
+        next: (newData: any) => {
+          this.successMsg = 'Detalle de Pago agregado correctamente.';
+          this.resetForm();
+          this.loadAllData();
+        },
+        error: (err: any) => {
+          console.error('[Component] Error agregando Detalle de Pago:', err);
+          this.errorMsg = 'Error al agregar: ' + (err.message || 'Desconocido');
+          this.loading = false;
+        }
+      });
     }
   }
 
   deleteDetallePago(id: number | undefined) {
-    if (!id) { this.errorMsg = 'ID no válido'; return; }
+    if (!id) {
+      this.errorMsg = 'ID no válido';
+      return;
+    }
     if (!confirm('¿Eliminar este detalle de pago?')) return;
     this.clearMessages();
     this.loading = true;
-    this.http.delete(`${this.apiUrl}/${id}`)
-      .subscribe({
-        next: () => this.loadAllData(),
-        error: (err) => { console.error(err); this.errorMsg = 'Error al eliminar'; this.loading = false; }
-      });
+    this.detallePagoService.delete(id).subscribe({
+      next: (deletedData: any) => {
+        this.successMsg = deletedData?.mensaje || 'Detalle de Pago eliminado correctamente.';
+        this.loadAllData();
+      },
+      error: (err: any) => {
+        console.error('[Component] Error eliminando Detalle de Pago:', err);
+        this.errorMsg = 'Error al eliminar: ' + (err.message || 'Desconocido');
+        this.loading = false;
+      }
+    });
   }
 
   editDetallePago(detallePago: DetallePago) {
     this.editMode = true;
     this.detallePagoToEdit = { ...detallePago };
-    this.nuevoDetallePago = { ...detallePago, FechaPago: detallePago.FechaPago ? new Date(detallePago.FechaPago).toISOString().substring(0,10) : undefined };
+    let fechaString: string | undefined = undefined;
+    if (detallePago.FechaPago !== null && detallePago.FechaPago !== undefined) {
+      if (typeof detallePago.FechaPago === 'string' && detallePago.FechaPago.trim() !== '') {
+        const dateObj = new Date(detallePago.FechaPago);
+        if (!isNaN(dateObj.getTime())) {
+          fechaString = dateObj.toISOString().substring(0, 10);
+        } else {
+          console.warn('[Component] FechaPago string no es una fecha válida:', detallePago.FechaPago);
+        }
+      }
+    }
+    this.nuevoDetallePago = {
+      ...detallePago,
+      FechaPago: fechaString
+    };
   }
 
-  cancelEdit() { this.resetForm(); }
+  cancelEdit() {
+    this.resetForm();
+  }
 
   resetForm() {
-    this.nuevoDetallePago = { SolicitudBecaId: undefined, TipoPagoId: undefined, Monto: undefined, FechaPago: undefined, Referencia: '', EstadoId: undefined };
+    this.nuevoDetallePago = {
+      SolicitudBecaId: undefined,
+      TipoPagoId: undefined,
+      Monto: undefined,
+      FechaPago: undefined,
+      Referencia: '',
+      EstadoId: undefined
+    };
     this.editMode = false;
     this.detallePagoToEdit = null;
     this.clearMessages();
   }
 
   onSearch() {
-    if (!this.searchTerm) { this.filteredDetallesDePago = [...this.detallesDePago]; return; }
-    const term = this.searchTerm.toLowerCase();
-    this.filteredDetallesDePago = this.detallesDePago.filter(d =>
-      (d.Id?.toString() ?? '').includes(term) ||
-      (d.SolicitudBecaReferencia ?? '').toLowerCase().includes(term) ||
-      (d.TipoPagoNombre ?? '').toLowerCase().includes(term) ||
-      (d.Referencia ?? '').toLowerCase().includes(term) ||
-      (d.Estadonombre ?? '').toLowerCase().includes(term) ||
-      (d.Monto?.toString() ?? '').includes(term) ||
-      (d.FechaPago ?? '').toLowerCase().includes(term)
-    );
+    let filtered = [...this.detallesDePago];
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(d =>
+        (d.SolicitudBecaReferencia ?? '').toLowerCase().includes(term) ||
+        (d.TipoPagoNombre ?? '').toLowerCase().includes(term) ||
+        (d.Monto?.toString() ?? '').includes(term) ||
+        (d.Estadonombre ?? '').toLowerCase().includes(term)
+      );
+    }
+    if (this.estadoFiltro) {
+      filtered = filtered.filter(d => d.Estadonombre === this.estadoFiltro);
+    }
+    if (this.periodoFiltro) {
+      filtered = filtered.filter(d => {
+        if (d.FechaPago !== null && d.FechaPago !== undefined) {
+          if (typeof d.FechaPago === 'string') {
+            return d.FechaPago.includes(this.periodoFiltro);
+          }
+        }
+        return false;
+      });
+    }
+    this.filteredDetallesDePago = filtered;
   }
 
   onFilterChange() {
     this.onSearch();
   }
 
-  clearMessages() { this.errorMsg = ''; this.successMsg = ''; }
+  clearMessages() {
+    this.errorMsg = '';
+    this.successMsg = '';
+  }
 
   getSolicitudBecaReferencia(id: number | null | undefined): string {
     if (id === null || id === undefined) return 'N/A';
@@ -381,7 +353,78 @@ export class DetallePagoComponent implements OnInit {
     return e ? e.Nombre : 'N/A';
   }
 
-  getInitialFromReference(ref: string): string {
-    return ref ? ref.charAt(0).toUpperCase() : '';
+  getInitialFromReference(ref: string | undefined | null): string {
+    if (!ref) return '?';
+    return ref.charAt(0).toUpperCase();
+  }
+
+  openProcessPaymentModal() {
+    this.showProcessPaymentModal = true;
+    this.selectedStudentId = null;
+    this.selectedSolicitudBecaId = null;
+    this.montoAPagar = 0;
+    this.fechaPago = '';
+    this.metodoPago = '';
+  }
+
+  closeProcessPaymentModal() {
+    this.showProcessPaymentModal = false;
+  }
+
+  processPayment() {
+    if (!this.selectedSolicitudBecaId || !this.montoAPagar || !this.fechaPago || !this.metodoPago) {
+      this.errorMsg = 'Por favor complete todos los campos obligatorios';
+      return;
+    }
+    this.clearMessages();
+    this.loading = true;
+    const data = {
+      SolicitudBecaId: this.selectedSolicitudBecaId,
+      TipoPagoId: this.tiposPagoLookup.find(tp => tp.Nombre === this.metodoPago)?.Id || 1,
+      Monto: this.montoAPagar,
+      FechaPago: this.fechaPago,
+      Referencia: '',
+      EstadoId: this.estadosLookup.find(e => e.Nombre === 'Pagado')?.Id || 1
+    };
+    this.detallePagoService.add(data).subscribe({
+      next: (paymentData: any) => {
+        this.successMsg = paymentData?.mensaje || 'Pago procesado correctamente';
+        this.closeProcessPaymentModal();
+        this.loadAllData();
+      },
+      error: (err: any) => {
+        console.error('[Component] Error procesando pago:', err);
+        this.errorMsg = 'Error al procesar el pago: ' + (err.message || 'Desconocido');
+        this.loading = false;
+      }
+    });
+  }
+
+  onEstudianteChange(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    if (target) {
+      const estudianteId = +target.value;
+      console.log('[Component] Estudiante seleccionado:', estudianteId); // Depuración
+      if (!isNaN(estudianteId)) {
+        const estudiante = this.estudiantesBeneficiados.find(e => e.EstudianteId === estudianteId);
+        this.selectedSolicitudBecaId = estudiante ? estudiante.SolicitudBecaId : null;
+        console.log('[Component] SolicitudBecaId asignada:', this.selectedSolicitudBecaId); // Depuración
+      } else {
+        this.selectedSolicitudBecaId = null;
+      }
+    }
+  }
+
+  openDetailsModal(detalle: DetallePago) {
+    this.selectedDetalle = detalle;
+    this.showDetailsModal = true;
+  }
+
+  closeDetailsModal() {
+    this.showDetailsModal = false;
+  }
+
+  exportToPDF() {
+    alert('Funcionalidad de exportación a PDF no implementada.');
   }
 }

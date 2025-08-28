@@ -12,18 +12,19 @@
 
     <!-- Controles -->
     <div class="controls">
-      <label>
+      <label for="periodo-select">
         Periodo Académico:
-        <select class="year-select" [(ngModel)]="periodoAcademicoId" (change)="onFilterChange()">
+        <select id="periodo-select" class="year-select" [(ngModel)]="periodoAcademicoId" (change)="onFilterChange()">
+          <option value="">Todos</option>
           <option *ngFor="let p of periodosAcademicosLookup" [value]="p.Id">
             {{ p.Nombre }} ({{ p.AnioAcademico }})
           </option>
         </select>
       </label>
 
-      <label>
+      <label for="estado-select">
         Estado:
-        <select class="year-select" [(ngModel)]="estadoId" (change)="onFilterChange()">
+        <select id="estado-select" class="year-select" [(ngModel)]="estadoId" (change)="onFilterChange()">
           <option value="">Todos</option>
           <option *ngFor="let e of estadosLookup" [value]="e.Id">
             {{ e.Nombre }}
@@ -31,9 +32,25 @@
         </select>
       </label>
 
-      <button class="export-btn" (click)="actualizarReportes()">Actualizar</button>
-      <button class="export-btn" (click)="exportReport()">Exportar</button>
+      <button class="export-btn" (click)="actualizarReportes()" aria-label="Actualizar reportes">
+        <i class="fas fa-sync-alt"></i> Actualizar
+      </button>
+      <button class="export-btn" (click)="exportReport()" aria-label="Exportar reporte">
+        <i class="fas fa-file-pdf"></i> Exportar PDF
+      </button>
     </div>
+  </div>
+
+  <!-- === MENSAJE DE ERROR === -->
+  <div *ngIf="error" class="alert-error" role="alert">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+  </div>
+
+  <!-- === CARGA === -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Cargando datos...</p>
   </div>
 
   <!-- === METRICAS PRINCIPALES / RESUMEN === -->
@@ -62,12 +79,24 @@
 
   <!-- === NAV TABS === -->
   <div class="tabs-container">
-    <div class="tab-button" [class.active]="activeTab==='resumen'" (click)="changeTab('resumen')">Resumen</div>
-    <div class="tab-button" [class.active]="activeTab==='totales'" (click)="changeTab('totales')">Totales</div>
-    <div class="tab-button" [class.active]="activeTab==='solicitudes'" (click)="changeTab('solicitudes')">Solicitudes</div>
-    <div class="tab-button" [class.active]="activeTab==='financiero'" (click)="changeTab('financiero')">Financiero</div>
-    <div class="tab-button" [class.active]="activeTab==='estudiantes'" (click)="changeTab('estudiantes')">Estudiantes</div>
-    <div class="tab-button" [class.active]="activeTab==='impacto'" (click)="changeTab('impacto')">Impacto</div>
+    <button class="tab-button" [class.active]="activeTab==='resumen'" (click)="changeTab('resumen')">
+      <i class="fas fa-tachometer-alt"></i> Resumen
+    </button>
+    <button class="tab-button" [class.active]="activeTab==='totales'" (click)="changeTab('totales')">
+      <i class="fas fa-list"></i> Totales
+    </button>
+    <button class="tab-button" [class.active]="activeTab==='solicitudes'" (click)="changeTab('solicitudes')">
+      <i class="fas fa-file-alt"></i> Solicitudes
+    </button>
+    <button class="tab-button" [class.active]="activeTab==='financiero'" (click)="changeTab('financiero')">
+      <i class="fas fa-dollar-sign"></i> Financiero
+    </button>
+    <button class="tab-button" [class.active]="activeTab==='estudiantes'" (click)="changeTab('estudiantes')">
+      <i class="fas fa-users"></i> Estudiantes
+    </button>
+    <button class="tab-button" [class.active]="activeTab==='impacto'" (click)="changeTab('impacto')">
+      <i class="fas fa-chart-bar"></i> Impacto
+    </button>
   </div>
 
   <!-- === CONTENIDO DE LAS TABS === -->
@@ -161,9 +190,9 @@
         <tbody>
           <tr *ngFor="let f of financialData">
             <td>{{ f.Mes }}</td>
-            <td>{{ f.Presupuesto }}</td>
-            <td>{{ f.Ejecutado }}</td>
-            <td>{{ f.Pendiente }}</td>
+            <td>{{ f.Presupuesto | number:'1.2-2' }}</td>
+            <td>{{ f.Ejecutado | number:'1.2-2' }}</td>
+            <td>{{ f.Pendiente | number:'1.2-2' }}</td>
           </tr>
         </tbody>
       </table>
@@ -172,7 +201,7 @@
         <svg class="line-chart">
           <polyline
             fill="none"
-            stroke="#007bff"
+            stroke="#4caf50"
             stroke-width="2"
             [attr.points]="lineChartPoints">
           </polyline>
@@ -195,12 +224,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let s of studentsData">
+          <tr *ngFor="let s of filteredStudents" (click)="selectStudent(s)" [class.selected]="selectedStudent?.Id === s.Id">
             <td>{{ s.Nombre }}</td>
             <td>{{ s.Apellidos }}</td>
             <td>{{ s.Carrera }}</td>
             <td>{{ s.becas }}</td>
-            <td>{{ s.MontoTotal }}</td>
+            <td>{{ s.MontoTotal | number:'1.2-2' }}</td>
           </tr>
         </tbody>
       </table>
@@ -223,9 +252,9 @@
           <tr *ngFor="let i of impactData; let idx = index">
             <td>{{ i.carrera }}</td>
             <td>{{ i.beneficiarios }}</td>
-            <td>{{ i.promedio }}</td>
+            <td>{{ i.promedio | number:'1.2-2' }}</td>
             <td>{{ i.graduados }}</td>
-            <td>{{ i.tasaRetencion }}</td>
+            <td>{{ i.tasaRetencion | number:'1.2-2' }}%</td>
           </tr>
         </tbody>
       </table>
@@ -235,11 +264,42 @@
           <g *ngFor="let i of impactData; let idx = index" [attr.transform]="getPieSliceTransform(idx)">
             <circle 
               cx="100" cy="100" r="80" 
-              fill="transparent" stroke="#007bff" stroke-width="40"
+              fill="transparent" 
+              [attr.stroke]="getPieColor(idx)"
+              stroke-width="40"
               [attr.stroke-dasharray]="getPieDashArray(i)">
             </circle>
           </g>
         </svg>
+      </div>
+    </div>
+
+    <!-- Por Estudiante -->
+    <div class="section" *ngIf="activeTab==='por-estudiante'">
+      <h2>Detalle del Estudiante</h2>
+      <div *ngIf="selectedStudent" class="student-detail-card">
+        <div class="student-header">
+          <div class="avatar">{{ selectedStudent.Nombre.charAt(0) }}</div>
+          <div class="student-info">
+            <h2>{{ selectedStudent.Nombre }} {{ selectedStudent.Apellidos }}</h2>
+            <p>{{ selectedStudent.Carrera }}</p>
+          </div>
+        </div>
+        
+        <div class="student-stats">
+          <div class="stat-item">
+            <strong>Becas Recibidas</strong>
+            <span>{{ selectedStudent.becas }}</span>
+          </div>
+          <div class="stat-item">
+            <strong>Monto Total</strong>
+            <span>{{ selectedStudent.MontoTotal | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div *ngIf="!selectedStudent" class="no-data">
+        Seleccione un estudiante de la tabla anterior para ver detalles.
       </div>
     </div>
 

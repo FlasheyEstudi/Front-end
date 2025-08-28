@@ -1,57 +1,84 @@
 <div class="config-container">
   <!-- HEADER -->
   <header class="config-header">
-    <div class="header-content">
-      <h1>Períodos Académicos</h1>
-      <p>Administra los períodos académicos del sistema</p>
-    </div>
+    <h1>Períodos Académicos</h1>
+    <p>Administra los períodos académicos del sistema</p>
     <button class="btn-primario" (click)="toggleForm()">
       <i class="fas fa-plus"></i> {{ editMode ? 'Cancelar' : 'Nuevo Período' }}
     </button>
   </header>
 
-  <!-- MODAL FLOANTE -->
+  <!-- FORMULARIO -->
   <div *ngIf="editMode" class="form-section">
     <div class="form-container">
       <div class="modal-header">
-        <h2>{{ periodoAcademicoToEdit ? 'Editar Período' : 'Registrar Nuevo Período' }}</h2>
-        <button class="btn-secundario" (click)="cancelEdit()">&times;</button>
+        <h2>{{ periodoAcademicoToEdit ? 'Editar Período' : 'Nuevo Período' }}</h2>
+        <button class="btn-secundario" (click)="resetForm()">&times;</button>
       </div>
       <form (ngSubmit)="guardarPeriodoAcademico()" #periodoForm="ngForm">
         <div class="form-group">
-          <label>Nombre *</label>
-          <input type="text" [(ngModel)]="nuevoPeriodoAcademico.Nombre" name="nombre" required placeholder="Nombre del período">
+          <label>Código *</label>
+          <input type="text" [(ngModel)]="nuevoPeriodoAcademico.Codigo" name="codigo" required
+                 maxlength="50" pattern="[A-Za-z0-9\-]+" #codigo="ngModel">
+          <div *ngIf="codigo.invalid && (codigo.dirty || codigo.touched)" class="error">
+            <div *ngIf="codigo.errors?.['required']">El Código es obligatorio.</div>
+            <div *ngIf="codigo.errors?.['pattern']">Solo letras, números o guiones.</div>
+          </div>
         </div>
         <div class="form-group">
-          <label>Año *</label>
-          <input type="number" [(ngModel)]="nuevoPeriodoAcademico.AnioAcademico" name="anio" required min="2000" max="2100">
+          <label>Nombre *</label>
+          <input type="text" [(ngModel)]="nuevoPeriodoAcademico.Nombre" name="nombre" required
+                 maxlength="255" #nombre="ngModel">
+          <div *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)" class="error">
+            <div *ngIf="nombre.errors?.['required']">El Nombre es obligatorio.</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Año Académico *</label>
+          <input type="text" [(ngModel)]="nuevoPeriodoAcademico.AnioAcademico" name="anio" required
+                 pattern="\d{4}-[A-B]" #anio="ngModel">
+          <div *ngIf="anio.invalid && (anio.dirty || anio.touched)" class="error">
+            <div *ngIf="anio.errors?.['required']">El Año es obligatorio.</div>
+            <div *ngIf="anio.errors?.['pattern']">Formato: AAAA-A o AAAA-B.</div>
+          </div>
         </div>
         <div class="form-group">
           <label>Fecha Inicio *</label>
-          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaInicio" name="fechaInicio" required>
+          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaInicio" name="fechaInicio" required
+                 #fechaInicio="ngModel">
+          <div *ngIf="fechaInicio.invalid && (fechaInicio.dirty || fechaInicio.touched)" class="error">
+            <div *ngIf="fechaInicio.errors?.['required']">La Fecha de Inicio es obligatoria.</div>
+          </div>
         </div>
         <div class="form-group">
           <label>Fecha Fin *</label>
-          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaFin" name="fechaFin" required>
+          <input type="date" [(ngModel)]="nuevoPeriodoAcademico.FechaFin" name="fechaFin" required
+                 #fechaFin="ngModel">
+          <div *ngIf="fechaFin.invalid && (fechaFin.dirty || fechaFin.touched)" class="error">
+            <div *ngIf="fechaFin.errors?.['required']">La Fecha de Fin es obligatoria.</div>
+          </div>
         </div>
         <div class="form-group">
           <label>Estado *</label>
-          <select [(ngModel)]="nuevoPeriodoAcademico.EstadoId" name="estadoId" required>
-            <option value="">Seleccione un estado</option>
+          <select [(ngModel)]="nuevoPeriodoAcademico.EstadoId" name="estadoId" required #estadoId="ngModel">
+            <option value="" disabled>Seleccione un estado</option>
             <option *ngFor="let estado of estadosLookup" [value]="estado.Id">{{ estado.Nombre }}</option>
           </select>
+          <div *ngIf="estadoId.invalid && (estadoId.dirty || estadoId.touched)" class="error">
+            <div *ngIf="estadoId.errors?.['required']">El Estado es obligatorio.</div>
+          </div>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-primario" [disabled]="periodoForm.invalid">
-            {{ periodoAcademicoToEdit ? 'Actualizar' : 'Registrar' }}
+            {{ periodoAcademicoToEdit ? 'Actualizar' : 'Crear' }}
           </button>
-          <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
+          <button type="button" class="btn-secundario" (click)="resetForm()">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MENSAJES DE ESTADO -->
+  <!-- MENSAJES -->
   <div *ngIf="errorMsg" class="alert alert-error">
     <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
   </div>
@@ -59,12 +86,13 @@
     <i class="fas fa-check-circle"></i> {{ successMsg }}
   </div>
 
-  <!-- TABLA DE PERÍODOS -->
+  <!-- TABLA -->
   <div class="table-responsive">
     <table class="table-modern">
       <thead>
         <tr>
           <th>ID</th>
+          <th>Código</th>
           <th>Nombre</th>
           <th>Año</th>
           <th>Inicio</th>
@@ -76,6 +104,7 @@
       <tbody>
         <tr *ngFor="let periodo of filteredPeriodosAcademicos">
           <td>{{ periodo.Id }}</td>
+          <td>{{ periodo.Codigo }}</td>
           <td>{{ periodo.Nombre }}</td>
           <td>{{ periodo.AnioAcademico }}</td>
           <td>{{ formatDate(periodo.FechaInicio) }}</td>
@@ -91,7 +120,7 @@
           </td>
         </tr>
         <tr *ngIf="filteredPeriodosAcademicos.length === 0">
-          <td colspan="7" class="no-data">No hay períodos registrados</td>
+          <td colspan="8" class="no-data">No hay períodos registrados</td>
         </tr>
       </tbody>
     </table>

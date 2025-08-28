@@ -1,108 +1,119 @@
-<div class="config-container">
-  <!-- Header -->
-  <header class="config-header">
-    <div class="header-content">
-      <h1>Áreas de Conocimiento</h1>
-      <p>Administra las áreas de conocimiento del sistema</p>
-    </div>
-    <button class="btn-primary" (click)="openModal(false)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      Agregar
-    </button>
-  </header>
+<!-- src/app/Child/area-conocimiento/area-conocimiento.component.html -->
+<div class="area-conocimiento-container">
+  <h2>Gestión de Áreas de Conocimiento</h2>
 
   <!-- Mensajes de estado -->
-  <div *ngIf="error" class="alert alert-error">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    {{ error }}
-  </div>
-  <div *ngIf="success" class="alert alert-success">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-      <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    {{ success }}
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+  <!-- Barra de búsqueda y botón de crear -->
+  <div class="controls">
+    <input type="text" [(ngModel)]="searchTerm" (input)="filterAreas()" placeholder="Buscar áreas..." class="form-control search-input">
+    <button (click)="openModal()" class="btn btn-primary">Crear Nueva Área</button>
   </div>
 
+  <!-- Indicador de carga -->
+  <div *ngIf="loading" class="loading">Cargando...</div>
+
   <!-- Tabla de áreas -->
-  <div class="table-responsive">
-    <table class="table-modern">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Descripción</th>
-          <th>Fecha Creación</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let area of areasConocimiento">
-          <td>{{ area.nombre }}</td>
-          <td>{{ area.descripcion || 'No disponible' }}</td>
-          <td>{{ area.fechaCreacion | date:'yyyy-MM-dd' }}</td>
-          <td class="actions-cell">
-            <button class="btn-edit" (click)="openModal(true, area)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.172l8.586-8.586z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <button class="btn-delete" (click)="deleteAreaConocimiento(area.Id)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="areasConocimiento.length === 0">
-          <td colspan="4" class="no-data">
-            No hay áreas registradas
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <table class="table table-striped" *ngIf="!loading && filteredAreas.length > 0">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Fecha Creación</th>
+        <th>Fecha Modificación</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let area of filteredAreas">
+        <td>{{ area.Id }}</td>
+        <td>{{ area.nombre }}</td>
+        <td>{{ area.descripcion }}</td>
+        <td>{{ area.fechaCreacion | date:'short' }}</td>
+        <td>{{ area.fechaModificacion | date:'short' }}</td>
+        <td>
+          <button (click)="openEditModal(area)" class="btn btn-sm btn-warning">Editar</button>
+          <button (click)="deleteAreaConocimiento(area.Id)" class="btn btn-sm btn-danger">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Mensaje si no hay datos -->
+  <div *ngIf="!loading && filteredAreas.length === 0" class="no-data">
+    No se encontraron áreas de conocimiento.
   </div>
 </div>
 
-<!-- ================== MODAL ================== -->
-<div class="modal-backdrop" *ngIf="showModal">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>{{ editMode ? 'Editar Área de Conocimiento' : 'Registrar Nueva Área' }}</h2>
-      <button class="modal-close" (click)="closeModal()">&times;</button>
+<!-- Modal para Crear/Editar -->
+<div class="modal" [ngClass]="{ 'is-active': showModal }" *ngIf="showModal">
+  <div class="modal-background" (click)="closeModal()"></div>
+  <div class="modal-content">
+    <div class="box">
+      <h3>{{ editMode ? 'Editar Área de Conocimiento' : 'Crear Nueva Área de Conocimiento' }}</h3>
+      
+      <form (ngSubmit)="onSubmit()" #areaForm="ngForm">
+        <div class="field">
+          <label class="label">Nombre *</label>
+          <div class="control">
+            <input
+              class="input"
+              type="text"
+              [(ngModel)]="nuevaAreaConocimiento.nombre"
+              name="nombre"
+              required
+              #nombre="ngModel"
+            />
+          </div>
+          <div *ngIf="nombre.invalid && nombre.touched" class="help is-danger">
+            El nombre es obligatorio.
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Descripción</label>
+          <div class="control">
+            <textarea
+              class="textarea"
+              [(ngModel)]="nuevaAreaConocimiento.descripcion"
+              name="descripcion"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Mostrar fechas solo en modo edición y si el objeto existe -->
+        <div *ngIf="editMode && areaToEdit" class="field">
+          <label class="label">Fecha de Creación</label>
+          <div class="control">
+            <input class="input" type="text" [value]="areaToEdit.fechaCreacion | date:'short'" disabled />
+          </div>
+        </div>
+        <div *ngIf="editMode && areaToEdit" class="field">
+          <label class="label">Fecha de Modificación</label>
+          <div class="control">
+            <input class="input" type="text" [value]="areaToEdit.fechaModificacion | date:'short'" disabled />
+          </div>
+        </div>
+
+        <div class="field is-grouped">
+          <div class="control">
+            <button
+              type="submit"
+              class="button is-link"
+              [disabled]="areaForm.invalid || loading"
+            >
+              {{ editMode ? 'Actualizar' : 'Crear' }}
+            </button>
+          </div>
+          <div class="control">
+            <button type="button" class="button is-light" (click)="closeModal()">Cancelar</button>
+          </div>
+        </div>
+      </form>
     </div>
-    <form (ngSubmit)="guardarAreaConocimiento()" #areaForm="ngForm">
-      <div class="form-group">
-        <label for="nombre">Nombre *</label>
-        <input 
-          type="text" 
-          id="nombre" 
-          [(ngModel)]="nuevaAreaConocimiento.nombre" 
-          name="nombre" 
-          required 
-          placeholder="Ingresa el nombre..."
-        >
-      </div>
-      <div class="form-group">
-        <label for="descripcion">Descripción</label>
-        <textarea 
-          id="descripcion" 
-          [(ngModel)]="nuevaAreaConocimiento.descripcion" 
-          name="descripcion" 
-          placeholder="Ingresa la descripción..."
-          rows="3"
-        ></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn-primario" [disabled]="areaForm.invalid">
-          {{ editMode ? 'Actualizar' : 'Crear' }}
-        </button>
-        <button type="button" class="btn-secundario" (click)="closeModal()">
-          Cancelar
-        </button>
-      </div>
-    </form>
   </div>
+  <button class="modal-close is-large" aria-label="close" (click)="closeModal()"></button>
 </div>

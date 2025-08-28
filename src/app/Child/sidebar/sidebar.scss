@@ -1,5 +1,3 @@
-/* src/app/Child/Sidebar/sidebar.scss */
-
 .sidebar {
   position: fixed;
   top: 0;
@@ -29,8 +27,8 @@
 }
 
 .logo-img {
-  width: 40px;
-  height: 40px;
+  width: 260px; /* Aumentado un 100% desde 40px */
+  height: 100px; /* Aumentado un 100% desde 40px */
   object-fit: contain;
   margin-bottom: 0.3rem;
 }
@@ -46,46 +44,70 @@
 
 .admin-badge {
   display: inline-block;
-  background: #e91e63;
-  color: white;
   padding: 0.15rem 0.4rem;
   border-radius: 10px;
   font-size: 0.65rem;
   margin-top: 0.2rem;
   font-weight: 500;
+  text-align: center;
+
+  &.admin {
+    background: #e91e63; /* Rojo */
+    color: white;
+  }
+
+  &.estudiante {
+    background: #4caf50; /* Verde */
+    color: white;
+  }
 }
 
-/* Navegación */
+/* Navegación centrada */
 .sidebar-nav {
   padding: 0.8rem 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
+  align-items: center;
+  width: 100%;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  padding: 0.4rem 0.6rem;
+  justify-content: center;
+  padding: 0.3rem 0.5rem;
   background: #009dd5;
   color: white;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  gap: 0.4rem;
-  text-align: left;
+  gap: 0.3rem;
+  text-align: center;
+  min-height: 30px;
+  width: 90%;
+  max-width: 220px;
+  margin: 0 auto;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
 }
 
 .nav-item:hover {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.1);
   transform: translateY(-1px);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
 }
 
 .nav-item.active {
-  background: #4caf50; /* Verde para Dashboard y Reportes */
+  background: #4caf50;
+  color: white;
+  transform: scale(1.02);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
+  border-color: #4caf50;
 }
 
 .nav-item.dashboard,
@@ -94,40 +116,50 @@
 }
 
 .nav-icon {
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  font-size: 12px;
 }
 
-/* Botón cerrar sesión */
+/* Botón cerrar sesión centrado */
 .logout-btn {
-  width: 100%;
+  width: 90%;
+  max-width: 220px;
+  margin: 0.8rem auto 0;
   background: #f44336;
   color: white;
   border: none;
-  padding: 0.4rem 0.6rem;
-  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  font-size: 0.8rem;
+  gap: 0.25rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  transition: background 0.2s ease;
-  margin-top: 1rem;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .logout-btn:hover {
   background: #d32f2f;
+  transform: translateY(-1px);
+  box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 /* Footer del sidebar */
 .sidebar-footer {
-  padding: 0.8rem;
+  padding: 0.6rem;
   border-top: 1px solid rgba(255,255,255,0.2);
   margin-top: auto;
   text-align: center;
@@ -137,13 +169,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  margin-bottom: 0.8rem;
+  gap: 0.3rem;
+  margin-bottom: 0.6rem;
 }
 
 .avatar {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   background: #009dd5;
   color: white;
   border-radius: 50%;
@@ -151,7 +183,7 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 /* Colapsado - desactivado por ahora */
@@ -173,7 +205,7 @@
 
 .sidebar.collapsed .nav-item {
   justify-content: center;
-  padding: 0.45rem;
+  padding: 0.4rem;
 }
 
 .sidebar.collapsed .logout-btn {

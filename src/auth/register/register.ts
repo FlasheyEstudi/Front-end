@@ -15,22 +15,19 @@ export class RegisterComponent {
   Nombre = '';
   Apellidos = '';
   Correo = '';
-  Contrasena = '';
-  ConfirmarContrasena = '';
+  Edad: number | null = null;
   Role = 'estudiante';
   error = '';
   loading = false;
-  showPassword = false;
+
+  showModal = false;
+  credentials = {
+    username: '',
+    password: '',
+    email: ''
+  };
 
   constructor(private authService: AuthService, private router: Router) {}
-
-  get passwordsMatch(): boolean {
-    return !this.ConfirmarContrasena || this.Contrasena === this.ConfirmarContrasena;
-  }
-
-  togglePasswordVisibility() {
-    this.showPassword = !this.showPassword;
-  }
 
   onSubmit(event?: Event) {
     if (event) event.preventDefault();
@@ -48,12 +45,8 @@ export class RegisterComponent {
       this.error = 'El correo electrónico es requerido';
       return;
     }
-    if (!this.Contrasena.trim() || this.Contrasena.length < 6) {
-      this.error = 'La contraseña debe tener al menos 6 caracteres';
-      return;
-    }
-    if (this.Contrasena !== this.ConfirmarContrasena) {
-      this.error = 'Las contraseñas no coinciden';
+    if (this.Edad === null || this.Edad <= 0 || !Number.isInteger(this.Edad)) {
+      this.error = 'La edad es requerida y debe ser un número entero positivo';
       return;
     }
 
@@ -63,19 +56,43 @@ export class RegisterComponent {
       Nombre: this.Nombre,
       Apellidos: this.Apellidos,
       Correo: this.Correo,
-      Contrasena: this.Contrasena,
+      Edad: this.Edad,
       Role: this.Role
     };
 
     this.authService.register(user).subscribe({
-      next: () => {
+      next: (response) => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        this.showCredentialsModal(response);
       },
       error: (err) => {
         this.loading = false;
+        console.error('Error en registro:', err);
         this.error = err.message || 'Error al registrar usuario. Intenta de nuevo.';
       }
+    });
+  }
+
+  showCredentialsModal(response: any) {
+    this.credentials = {
+      username: response.user?.nombre || this.Nombre,
+      password: response.passwordGenerada || 'Contraseña no disponible',
+      email: response.user?.email || this.Correo
+    };
+    this.showModal = true;
+  }
+
+  closeCredentialsModal() {
+    this.showModal = false;
+    this.router.navigate(['/login']);
+  }
+
+  copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('¡Copiado al portapapeles!');
+    }).catch(err => {
+      console.error('Error al copiar: ', err);
+      alert('Error al copiar al portapapeles.');
     });
   }
 }

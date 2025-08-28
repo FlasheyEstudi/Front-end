@@ -12,12 +12,12 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./login.css']
 })
 export class LoginComponent {
-  identifier = ''; // Identificador (correo o nombre)
+  identifier = '';
   password = '';
   error = '';
   loading = false;
   showPassword = false;
-  selectedRole = 'estudiante'; // Para los botones de rol
+  selectedRole = 'estudiante';
 
   constructor(
     private authService: AuthService,
@@ -42,9 +42,10 @@ export class LoginComponent {
     this.error = '';
 
     this.authService.login(this.identifier, this.password).subscribe({
-      next: () => {
+      next: (response) => {
         this.loading = false;
-        localStorage.setItem('role', this.selectedRole);
+        // ❌ ELIMINADO: No establecer el rol manualmente
+        // localStorage.setItem('role', this.selectedRole); // Esta línea causaba el problema
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

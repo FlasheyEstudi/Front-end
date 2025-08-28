@@ -96,7 +96,8 @@ export class RequisitoComponent implements OnInit {
     this.editMode = true; // abrir modal
     this.requisitoToEdit = { ...requisito };
     this.nuevoRequisito = {
-      ...requisito,
+      Descripcion: requisito.Descripcion,
+      Tipo: requisito.Tipo,
       FechaRegistro: requisito.FechaRegistro ? new Date(requisito.FechaRegistro).toISOString().substring(0, 10) : null,
       FechaModificacion: requisito.FechaModificacion ? new Date(requisito.FechaModificacion).toISOString().substring(0, 10) : null
     };

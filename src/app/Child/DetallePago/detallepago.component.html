@@ -5,13 +5,17 @@
     <p>Controla los desembolsos y calendario de pagos de becas</p>
   </div>
 
+  <!-- Mensajes -->
+  <div *ngIf="errorMsg" class="error-message">{{ errorMsg }}</div>
+  <div *ngIf="successMsg" class="success-message">{{ successMsg }}</div>
+
   <!-- Botones principales -->
   <div class="action-buttons">
-    <button class="btn-export">
+    <button class="btn-export" (click)="exportToPDF()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M12 15v2m-6-4h12m-6-8V3m-3 18h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      Exportar Reporte
+      Exportar Reporte PDF
     </button>
     <button class="btn-process" (click)="openProcessPaymentModal()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -26,7 +30,7 @@
     <div class="kpi-card green">
       <div class="kpi-icon">✅</div>
       <div class="kpi-content">
-        <h2>{{ dashboardData.totalPagado | currency }}</h2>
+        <h2>{{ dashboardData.totalPagado | currency:'USD':'symbol':'1.2-2' }}</h2>
         <p>Total Pagado</p>
         <small>Desembolsado</small>
       </div>
@@ -34,7 +38,7 @@
     <div class="kpi-card red">
       <div class="kpi-icon">⏰</div>
       <div class="kpi-content">
-        <h2>{{ dashboardData.totalPendiente | currency }}</h2>
+        <h2>{{ dashboardData.totalPendiente | currency:'USD':'symbol':'1.2-2' }}</h2>
         <p>Total Pendiente</p>
         <small>Por pagar</small>
       </div>
@@ -50,7 +54,7 @@
     <div class="kpi-card purple">
       <div class="kpi-icon">📈</div>
       <div class="kpi-content">
-        <h2>{{ dashboardData.presupuestoTotal | currency }}</h2>
+        <h2>{{ dashboardData.presupuestoTotal | currency:'USD':'symbol':'1.2-2' }}</h2>
         <p>Presupuesto Total</p>
         <small>Total</small>
       </div>
@@ -117,22 +121,22 @@
             <tr *ngFor="let detalle of filteredDetallesDePago">
               <td>
                 <div class="avatar-container">
-                  <div class="avatar">{{ getInitialFromReference(getSolicitudBecaReferencia(detalle.SolicitudBecaId)) }}</div>
-                  <div class="student-name">{{ getSolicitudBecaReferencia(detalle.SolicitudBecaId) }}</div>
+                  <div class="avatar">{{ getInitialFromReference(detalle.SolicitudBecaReferencia || 'N/A') }}</div>
+                  <div class="student-name">{{ detalle.SolicitudBecaReferencia || 'N/A' }}</div>
                   <div class="student-id">{{ detalle.Id }}</div>
                 </div>
               </td>
-              <td>{{ getTipoPagoNombre(detalle.TipoPagoId) }}</td>
-              <td>{{ detalle.Monto | currency }}</td>
+              <td>{{ detalle.TipoPagoNombre || 'N/A' }}</td>
+              <td>{{ detalle.Monto | currency:'USD':'symbol':'1.2-2' }}</td>
               <td>
                 <div class="progress-bar">
                   <div class="progress-fill" [style.width]="(detalle.Monto / 100000) * 100 + '%'"></div>
-                  {{ detalle.Monto | currency }}
+                  {{ detalle.Monto | currency:'USD':'symbol':'1.2-2' }}
                 </div>
               </td>
               <td>
-                <div class="amount" [class.pending]="detalle.EstadoId !== 1">
-                  {{ detalle.Monto | currency }}
+                <div class="amount" [class.pending]="detalle.Estadonombre !== 'Completado'">
+                  {{ detalle.Monto | currency:'USD':'symbol':'1.2-2' }}
                 </div>
               </td>
               <td>
@@ -140,10 +144,10 @@
                 <div class="status">Programado</div>
               </td>
               <td>
-                <span class="status-badge" [class.active]="detalle.EstadoId === 1"
-                      [class.completed]="detalle.EstadoId === 2"
-                      [class.pending]="detalle.EstadoId === 3">
-                  {{ getEstadoNombre(detalle.EstadoId) }}
+                <span class="status-badge" [class.active]="detalle.Estadonombre === 'Activo'"
+                      [class.completed]="detalle.Estadonombre === 'Completado'"
+                      [class.pending]="detalle.Estadonombre === 'Pendiente'">
+                  {{ detalle.Estadonombre || 'N/A' }}
                 </span>
               </td>
               <td>
@@ -151,6 +155,17 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                     <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button class="btn-action edit" (click)="editDetallePago(detalle)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button class="btn-action delete" (click)="deleteDetallePago(detalle.Id)" [disabled]="loading">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m-4 5v6m-4-6v6m8-6v6M5 6l1 12a2 2 0 002 2h8a2 2 0 002-2l1-12H5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                 </button>
               </td>
@@ -162,21 +177,32 @@
 
     <!-- Calendario de Pagos -->
     <div *ngIf="activeTab === 'calendar'">
-      <div class="calendar-item" *ngFor="let detalle of filteredDetallesDePago">
+      <div class="calendar-item" *ngFor="let calendar of calendarioDePagos">
         <div class="date">
           <div class="date-icon">📅</div>
-          <div class="date-text">domingo, 31 de marzo de 2024</div>
-          <div class="payments-count">1 pagos programados</div>
+          <div class="date-text">{{ calendar.fecha | date:'fullDate' }}</div>
+          <div class="payments-count">{{ calendar.pagos.length }} pagos programados</div>
         </div>
-        <div class="payment-details">
+        <div class="payment-details" *ngFor="let pago of calendar.pagos">
           <div class="beneficiario">
-            <div class="avatar">J</div>
-            <div class="name">Juan Pérez</div>
-            <div class="codigo">BEC-001</div>
+            <div class="avatar">{{ getInitialFromReference(pago.nombre) }}</div>
+            <div class="name">{{ pago.nombre }}</div>
+            <div class="codigo">BEC-{{ pago.id }}</div>
           </div>
-          <div class="monto">{{ detalle.Monto | currency }}</div>
+          <div class="monto">{{ pago.monto | currency:'USD':'symbol':'1.2-2' }}</div>
           <div class="actions">
-            <button class="btn-view" (click)="openDetailsModal(detalle)">
+            <button class="btn-view" (click)="openDetailsModal({ 
+              Id: pago.id, 
+              SolicitudBecaId: 0, 
+              TipoPagoId: 0, 
+              Monto: pago.monto, 
+              FechaPago: calendar.fecha, 
+              Referencia: '', 
+              EstadoId: 0, 
+              SolicitudBecaReferencia: pago.nombre, 
+              TipoPagoNombre: 'N/A', 
+              Estadonombre: pago.estado 
+            })">
               Ver Detalles
             </button>
             <button class="btn-process-lote">
@@ -203,8 +229,8 @@
             <div class="name">{{ tx.nombre }}</div>
             <div class="details">{{ tx.fecha | date:'dd/MM/yyyy' }} • {{ tx.metodo }}</div>
           </div>
-          <div class="amount">{{ tx.monto | currency }}</div>
-          <div class="status-badge completed">Pagado</div>
+          <div class="amount">{{ tx.monto | currency:'USD':'symbol':'1.2-2' }}</div>
+          <div class="status-badge" [class.completed]="tx.estado === 'Pagado'">{{ tx.estado }}</div>
         </div>
       </div>
     </div>
@@ -221,10 +247,16 @@
         <div class="form-row">
           <div class="form-group">
             <label for="estudiante">Estudiante Beneficiario *</label>
-            <select id="estudiante" [(ngModel)]="selectedStudentId" name="estudiante" required>
-              <option value="">Seleccionar estudiante...</option>
-              <option *ngFor="let s of solicitudesBecaLookup" [value]="s.Id">{{ s.Referencia }}</option>
+            <select id="estudiante" [(ngModel)]="selectedStudentId" name="estudiante" (change)="onEstudianteChange($event)" required>
+              <option value="" disabled>Seleccionar estudiante...</option>
+              <option *ngFor="let estudiante of estudiantesBeneficiados" [value]="estudiante.EstudianteId">
+                {{ estudiante.Nombre }} {{ estudiante.Apellido }}
+              </option>
             </select>
+            <!-- Mensaje si no hay estudiantes disponibles -->
+            <div *ngIf="!estudiantesBeneficiados.length" class="error-message">
+              No hay estudiantes beneficiados disponibles. Verifique la conexión con el servidor.
+            </div>
           </div>
           <div class="form-group">
             <label for="monto">Monto a Pagar *</label>
@@ -239,9 +271,8 @@
           <div class="form-group">
             <label for="metodoPago">Método de Pago *</label>
             <select id="metodoPago" [(ngModel)]="metodoPago" name="metodoPago" required>
-              <option value="">Seleccionar método...</option>
-              <option value="Transferencia">Transferencia</option>
-              <option value="Cheque">Cheque</option>
+              <option value="" disabled>Seleccionar método...</option>
+              <option *ngFor="let tipo of tiposPagoLookup" [value]="tipo.Nombre">{{ tipo.Nombre }}</option>
             </select>
           </div>
         </div>
@@ -271,18 +302,71 @@
           <strong>Fecha de Pago:</strong> {{ selectedDetalle.FechaPago | date:'dd/MM/yyyy' }}
         </div>
         <div class="detail-item" *ngIf="selectedDetalle">
-          <strong>Monto:</strong> {{ selectedDetalle.Monto | currency }}
+          <strong>Monto:</strong> {{ selectedDetalle.Monto | currency:'USD':'symbol':'1.2-2' }}
         </div>
         <div class="detail-item" *ngIf="selectedDetalle">
           <strong>Método:</strong> {{ selectedDetalle.TipoPagoNombre || 'N/A' }}
         </div>
         <div class="detail-item" *ngIf="selectedDetalle">
-          <strong>Estado:</strong> {{ getEstadoNombre(selectedDetalle.EstadoId) }}
+          <strong>Estado:</strong> {{ selectedDetalle.Estadonombre || 'N/A' }}
         </div>
         <div class="detail-item" *ngIf="selectedDetalle">
           <strong>Referencia:</strong> {{ selectedDetalle.Referencia || 'N/A' }}
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Formulario para agregar/editar -->
+  <div class="form-container">
+    <h2>{{ editMode ? 'Editar Detalle de Pago' : 'Agregar Detalle de Pago' }}</h2>
+    <form (ngSubmit)="guardarDetallePago()">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="solicitudBeca">Solicitud de Beca</label>
+          <select id="solicitudBeca" [(ngModel)]="nuevoDetallePago.SolicitudBecaId" name="solicitudBeca" required>
+            <option value="" disabled>Seleccionar solicitud...</option>
+            <option *ngFor="let s of solicitudesBecaLookup" [value]="s.Id">{{ s.Referencia }}</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="tipoPago">Tipo de Pago</label>
+          <select id="tipoPago" [(ngModel)]="nuevoDetallePago.TipoPagoId" name="tipoPago" required>
+            <option value="" disabled>Seleccionar tipo...</option>
+            <option *ngFor="let t of tiposPagoLookup" [value]="t.Id">{{ t.Nombre }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="monto">Monto</label>
+          <input type="number" id="monto" [(ngModel)]="nuevoDetallePago.Monto" name="monto" required min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="fechaPago">Fecha de Pago</label>
+          <input type="date" id="fechaPago" [(ngModel)]="nuevoDetallePago.FechaPago" name="fechaPago" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="referencia">Referencia</label>
+          <input type="text" id="referencia" [(ngModel)]="nuevoDetallePago.Referencia" name="referencia">
+        </div>
+        <div class="form-group">
+          <label for="estado">Estado</label>
+          <select id="estado" [(ngModel)]="nuevoDetallePago.EstadoId" name="estado" required>
+            <option value="" disabled>Seleccionar estado...</option>
+            <option *ngFor="let e of estadosLookup" [value]="e.Id">{{ e.Nombre }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
+        <button type="submit" class="btn-primario" [disabled]="loading">
+          <span *ngIf="!loading">{{ editMode ? 'Actualizar' : 'Agregar' }}</span>
+          <span *ngIf="loading" class="loading-spinner"></span>
+        </button>
+      </div>
+    </form>
   </div>
 </div>

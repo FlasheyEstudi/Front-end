@@ -1,3 +1,4 @@
+// src/app/auth/auth.service.ts
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
@@ -6,6 +7,7 @@ import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 import { isPlatformBrowser } from '@angular/common';
 
+// Respuesta del login
 export interface LoginResponse {
   access_token: string;
   user: {
@@ -14,16 +16,20 @@ export interface LoginResponse {
     role: string;
     email?: string;
   };
+  passwordGenerada?: string;
 }
 
+// Registro de usuario
 export interface RegisterUser {
   Nombre: string;
   Apellidos: string;
   Correo: string;
-  Contrasena: string;
   Role: string;
+  Edad: number; // ✅ agregado
+  Contrasena?: string;
 }
 
+// Token decodificado
 export interface DecodedToken {
   sub: number;
   role: string;
@@ -33,6 +39,7 @@ export interface DecodedToken {
   exp: number;
 }
 
+// Usuario actual
 export interface CurrentUser {
   id: number;
   nombre: string;
@@ -81,42 +88,32 @@ export class AuthService {
     this.currentUser$ = this.currentUserSubject.asObservable();
   }
 
+  // Login
   login(identifier: string, password: string): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, { identifier, password }).pipe(
       tap(res => {
         if (isPlatformBrowser(this.platformId)) {
-          console.log('Saving token:', res.access_token); // Log para depuración
           localStorage.setItem('access_token', res.access_token);
-          localStorage.setItem('role', res.user.role);
         }
         this.currentUserSubject.next(res.user);
         this.router.navigate(['/dashboard']);
       }),
-      catchError(err => {
-        console.error('Login error:', err);
-        return throwError(() => new Error(err.error?.message || 'Error en el login'));
-      })
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el login')))
     );
   }
 
+  // Registro
   register(data: RegisterUser): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.apiUrl}/register`, data).pipe(
-      tap(res => {
-        if (isPlatformBrowser(this.platformId)) {
-          console.log('Saving token after register:', res.access_token); // Log para depuración
-          localStorage.setItem('access_token', res.access_token);
-          localStorage.setItem('role', res.user.role);
-          this.currentUserSubject.next(res.user);
-          this.router.navigate(['/dashboard']);
-        }
+      tap(() => {
+        console.log('Usuario registrado con éxito. Ahora debe iniciar sesión.');
+        this.currentUserSubject.next(null);
       }),
-      catchError(err => {
-        console.error('Register error:', err);
-        return throwError(() => new Error(err.error?.message || 'Error en el registro'));
-      })
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error en el registro')))
     );
   }
 
+  // Logout
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('access_token');
@@ -126,6 +123,7 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
+  // Chequear si está logueado
   isLoggedIn(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
     const token = localStorage.getItem('access_token');
@@ -152,6 +150,7 @@ export class AuthService {
     return this.currentUserSubject.value?.email;
   }
 
+  // Cambiar contraseña
   changePassword(currentPassword: string, newPassword: string): Observable<any> {
     if (!this.isLoggedIn()) {
       this.logout();
@@ -163,10 +162,7 @@ export class AuthService {
       'Authorization': `Bearer ${token}`
     });
     return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword }, { headers }).pipe(
-      catchError(err => {
-        console.error('Change password error:', err);
-        return throwError(() => new Error(err.error?.message || 'Error al cambiar la contraseña'));
-      })
+      catchError(err => throwError(() => new Error(err.error?.message || 'Error al cambiar la contraseña')))
     );
   }
 

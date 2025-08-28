@@ -13,33 +13,56 @@
   <!-- Modal/Formulario -->
   <div *ngIf="editMode" class="form-section">
     <div class="form-container">
-      <h2>{{ editMode ? 'Editar Estado' : 'Registrar Nuevo Estado' }}</h2>
+      <div class="modal-header">
+        <h2>{{ estadoToEdit ? 'Editar Estado' : 'Registrar Nuevo Estado' }}</h2>
+        <button class="btn-secundario" (click)="resetForm()">&times;</button>
+      </div>
       <form (ngSubmit)="guardarEstado()" #estadoForm="ngForm">
         <div class="form-group">
           <label>Nombre *</label>
-          <input type="text" [(ngModel)]="nuevoEstado.Nombre" name="nombre" required placeholder="Nombre del estado">
+          <input type="text" [(ngModel)]="nuevoEstado.Nombre" name="nombre" required
+                 minlength="2" maxlength="50" #nombre="ngModel">
+          <div *ngIf="nombre.invalid && (nombre.dirty || nombre.touched)" class="error">
+            <div *ngIf="nombre.errors?.['required']">El Nombre es obligatorio.</div>
+            <div *ngIf="nombre.errors?.['minlength']">Mínimo 2 caracteres.</div>
+            <div *ngIf="nombre.errors?.['maxlength']">Máximo 50 caracteres.</div>
+          </div>
         </div>
         <div class="form-group">
           <label>Color *</label>
-          <input type="color" [(ngModel)]="nuevoEstado.Color" name="color" required>
+          <input type="color" [(ngModel)]="nuevoEstado.Color" name="color" required #color="ngModel">
+          <div *ngIf="color.invalid && (color.dirty || color.touched)" class="error">
+            <div *ngIf="color.errors?.['required']">El Color es obligatorio.</div>
+          </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-primario" [disabled]="estadoForm.invalid">{{ editMode ? 'Actualizar' : 'Registrar' }}</button>
-          <button type="button" class="btn-secundario" (click)="cancelEdit()">Cancelar</button>
+          <button type="submit" class="btn-primario" [disabled]="estadoForm.invalid">
+            {{ estadoToEdit ? 'Actualizar' : 'Registrar' }}
+          </button>
+          <button type="button" class="btn-secundario" (click)="resetForm()">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Mensajes -->
-  <div *ngIf="errorMsg" class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}</div>
-  <div *ngIf="successMsg" class="alert alert-success"><i class="fas fa-check-circle"></i> {{ successMsg }}</div>
+  <div *ngIf="errorMsg" class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i> {{ errorMsg }}
+  </div>
+  <div *ngIf="successMsg" class="alert alert-success">
+    <i class="fas fa-check-circle"></i> {{ successMsg }}
+  </div>
 
   <!-- Tabla -->
   <div class="table-responsive">
     <table class="table-modern">
       <thead>
-        <tr><th>ID</th><th>Nombre</th><th>Color</th><th>Acciones</th></tr>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Color</th>
+          <th>Acciones</th>
+        </tr>
       </thead>
       <tbody>
         <tr *ngFor="let estado of estados">
@@ -50,8 +73,12 @@
             {{ estado.Color }}
           </td>
           <td class="actions-cell">
-            <button class="btn-edit" (click)="editEstado(estado)"><i class="fas fa-edit"></i></button>
-            <button class="btn-delete" (click)="deleteEstado(estado.Id)"><i class="fas fa-trash"></i></button>
+            <button class="btn-edit" (click)="editEstado(estado)">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-delete" (click)="deleteEstado(estado.Id)">
+              <i class="fas fa-trash"></i>
+            </button>
           </td>
         </tr>
         <tr *ngIf="estados.length === 0">

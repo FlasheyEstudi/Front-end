@@ -1,12 +1,17 @@
+/* src/app/auth/register/register.component.css */
 .register-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  /* Fondo estático igual al de login */
   background: linear-gradient(135deg, #00b4d8, #66ff00);
   z-index: -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem; /* Agregado para evitar que se salga en pantallas pequeñas */
+  box-sizing: border-box; /* Incluye padding en el width/height */
 }
 
 .register-card {
@@ -16,15 +21,14 @@
   border-radius: 1.25rem;
   padding: 2rem;
   width: 90%;
-  max-width: 900px;
+  max-width: 900px; /* Puede ser un poco ancho para formularios simples, considera reducirlo si es necesario */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   color: white;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  /* position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); */
+  /* Las propiedades anteriores se pueden reemplazar con flexbox en .register-container */
   z-index: 10;
+  box-sizing: border-box; /* Incluye padding en el width */
 }
 
 .logo-container {
@@ -52,17 +56,20 @@
   margin-bottom: 1.5rem;
 }
 
-.register-form {
+/* Cambiado de .form-group a .register-form para coincidir con el HTML */
+.register-form { /* Selector corregido */
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   justify-content: space-between;
 }
 
+/* Ajuste para que los elementos del formulario se vean mejor */
 .register-form .form-group {
-  flex: 1 1 calc(50% - 1rem);
+  flex: 1 1 calc(50% - 1rem); /* Ocupa el 50% del ancho menos el gap */
   display: flex;
   flex-direction: column;
+  min-width: 250px; /* Ancho mínimo para evitar que se vuelvan demasiado pequeños */
 }
 
 .register-form .form-group label {
@@ -95,29 +102,24 @@
   color: white;
   font-size: 1rem;
   outline: none;
+  min-width: 0; /* Permite que el input se encoja dentro del flex container */
 }
 
 .register-form .form-group .input-wrapper input::placeholder {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.register-form .form-group .input-wrapper .password-toggle {
-  cursor: pointer;
-  padding: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
+/* Ajuste para el mensaje de error del formulario */
+.error-message {
+  color: #ff6b6b; /* Rojo más suave */
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  width: 100%; /* Ocupa todo el ancho para centrarlo */
 }
 
-.register-form .form-group .input-wrapper .password-toggle:hover {
-  color: white;
-}
-
-.register-form .form-group .validation-error {
-  color: #e74c3c;
-  font-size: 0.8rem;
-  margin-top: 0.3rem;
-}
-
-.btn-register {
+/* Ajuste para el botón de registro */
+.btn-register { /* Selector corregido */
   flex: 1 1 100%;
   margin-top: 1rem;
   padding: 0.8rem;
@@ -132,6 +134,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  transition: all 0.2s ease; /* Transición suave para hover */
 }
 
 .btn-register:disabled {
@@ -158,4 +161,226 @@
 .login-link a:hover {
   color: #00b4d8;
   text-decoration: none;
+}
+
+/* Modal Styles - Ajustados para coincidir con el HTML */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Cambiado de .modal-content a .modal */
+.modal { /* Selector corregido */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ajuste para el encabezado del modal */
+.modal-header { /* Selector corregido */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #00b4d8;
+  font-size: 1.5rem;
+}
+
+/* Botón de cerrar 'X' (opcional, si se usa) */
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+/* Ajuste para el cuerpo del modal */
+.modal-body { /* Selector corregido */
+  padding: 1.5rem;
+  flex-grow: 1; /* Ocupa el espacio disponible */
+}
+
+/* Ajuste para los campos de credenciales */
+.credential-field { /* Selector corregido */
+  margin-bottom: 1.5rem;
+}
+
+.credential-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #555;
+}
+
+/* Ajuste para el valor de las credenciales */
+.credential-value { /* Selector corregido */
+  display: flex;
+  align-items: center;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.credential-value span {
+  flex: 1;
+  font-family: monospace;
+  font-size: 1.1rem;
+  word-break: break-all; /* Rompe palabras largas */
+  color: #333; /* Color del texto */
+}
+
+/* Ajuste para el botón de copiar */
+.copy-btn { /* Selector corregido */
+  background: #00b4d8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0; /* Evita que el botón se encoja */
+}
+
+.copy-btn:hover {
+  background: #0096c7; /* Color más oscuro al pasar el mouse */
+}
+
+/* Ajuste para la nota importante */
+.important-note { /* Selector corregido */
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.important-note i {
+  color: goldenrod;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.important-note p {
+  margin: 0;
+  font-weight: 500;
+  color: #856404;
+}
+
+/* Ajuste para el pie del modal */
+.modal-footer { /* Selector corregido */
+  padding: 1.5rem;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+/* Ajuste para el botón primario del modal */
+.btn-primary { /* Selector corregido */
+  background: linear-gradient(to right, #00b4d8, #66ff00);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease; /* Transición suave */
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .register-card {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  /* En pantallas pequeñas, los campos del formulario ocupan todo el ancho */
+  .register-form .form-group {
+    flex: 1 1 100%;
+    min-width: auto;
+  }
+
+  .modal {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem); /* Ajusta la altura máxima en móviles */
+  }
+}
+
+/* Ajuste adicional para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 1rem;
+  }
+
+  .register-title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.8rem;
+  }
+
+  .register-form .form-group .input-wrapper input,
+  .register-form .form-group .input-wrapper select {
+    font-size: 0.9rem; /* Fuente más pequeña en móviles */
+    padding: 0.6rem 0.8rem; /* Padding ajustado */
+  }
+
+  .btn-register,
+  .btn-primary {
+    padding: 0.7rem 1.5rem; /* Padding ajustado para botones */
+    font-size: 0.9rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .credential-value span {
+    font-size: 1rem; /* Fuente más pequeña para credenciales */
+  }
+
+  .copy-btn {
+    padding: 0.4rem 0.6rem; /* Padding ajustado para botón copiar */
+    font-size: 0.8rem;
+  }
 }

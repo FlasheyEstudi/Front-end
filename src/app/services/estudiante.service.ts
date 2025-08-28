@@ -1,11 +1,9 @@
-// src/app/services/estudiante.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { lastValueFrom, catchError } from 'rxjs';
 import { ErrorService } from './error.service';
 import { Router } from '@angular/router';
 
-// Interfaces para tipado fuerte
 export interface Estudiante {
   Id: number;
   Nombre: string;
@@ -46,6 +44,7 @@ export class EstudianteService {
   private apiUrl = 'http://localhost:3000/api-beca/estudiante';
   private estadoUrl = 'http://localhost:3000/api-beca/estado';
   private carreraUrl = 'http://localhost:3000/api-beca/carrera';
+  private mapaUrl = 'http://localhost:3000/api-beca/usuario/mapa-estudiante'; // Endpoint corregido
 
   constructor(
     private http: HttpClient,
@@ -53,9 +52,6 @@ export class EstudianteService {
     private router: Router
   ) {}
 
-  /**
-   * Obtiene las cabeceras con el token de autorización
-   */
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -69,9 +65,6 @@ export class EstudianteService {
     });
   }
 
-  /**
-   * Manejo genérico de errores con redirección en caso de 401
-   */
   private handleError<T>(operation = 'operation') {
     return (err: any) => {
       if (err.status === 401) {
@@ -84,9 +77,6 @@ export class EstudianteService {
     };
   }
 
-  /**
-   * Crea un nuevo estudiante
-   */
   async createEstudiante(data: any): Promise<CreateEstudianteResponse> {
     return await lastValueFrom(
       this.http.post<CreateEstudianteResponse>(this.apiUrl, data, { headers: this.getHeaders() })
@@ -96,9 +86,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Obtiene todos los estudiantes
-   */
   async getAllEstudiantes(): Promise<Estudiante[]> {
     return await lastValueFrom(
       this.http.get<Estudiante[]>(this.apiUrl, { headers: this.getHeaders() })
@@ -108,9 +95,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Obtiene un estudiante por ID
-   */
   async getEstudianteById(id: number): Promise<Estudiante> {
     return await lastValueFrom(
       this.http.get<Estudiante>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
@@ -120,9 +104,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Actualiza un estudiante
-   */
   async updateEstudiante(id: number, data: any): Promise<Estudiante> {
     return await lastValueFrom(
       this.http.put<Estudiante>(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() })
@@ -132,9 +113,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Elimina un estudiante
-   */
   async eliminarEstudiante(id: number): Promise<any> {
     return await lastValueFrom(
       this.http.delete<any>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() })
@@ -144,9 +122,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Obtiene todos los estados
-   */
   async getAllEstados(): Promise<Estado[]> {
     return await lastValueFrom(
       this.http.get<Estado[]>(this.estadoUrl, { headers: this.getHeaders() })
@@ -156,9 +131,6 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Obtiene todas las carreras
-   */
   async getAllCarreras(): Promise<Carrera[]> {
     return await lastValueFrom(
       this.http.get<Carrera[]>(this.carreraUrl, { headers: this.getHeaders() })
@@ -168,22 +140,16 @@ export class EstudianteService {
     );
   }
 
-  /**
-   * Busca un estudiante por correo
-   */
   async getEstudianteByEmail(email: string): Promise<Estudiante | undefined> {
     const estudiantes = await this.getAllEstudiantes();
     return estudiantes.find(e => e.Correo?.toLowerCase() === email.toLowerCase());
   }
 
-  /**
-   * Mapea un usuario (por userId) a un estudiante (por estudianteId)
-   */
   async getEstudianteIdByUserId(userId: number): Promise<number> {
     try {
       const response = await lastValueFrom(
         this.http.get<{ estudianteId: number }>(
-          `${this.apiUrl}/mapa-id`,
+          this.mapaUrl,
           {
             headers: this.getHeaders(),
             params: { userId: userId.toString() }
